@@ -21,13 +21,17 @@ int main() {
 
 
     while (!infile.eof()) {
-        uint8_t B4[4];
+        uint8_t B4[8];
         infile.read((char *) &B4, sizeof(B4));
         array[B4[0]]++;
         array[B4[1]]++;
         array[B4[2]]++;
         array[B4[3]]++;
-        count+=4;
+        array[B4[4]]++;
+        array[B4[5]]++;
+        array[B4[6]]++;
+        array[B4[7]]++;
+        count+=8;
     }
 
 
