@@ -3,9 +3,9 @@
 #include <math.h>
 #include "log2_lshift16.h"
 
-const unsigned SIZE = 131072*8*1024;   // emulate 1024MB of input bytes
-const unsigned log_return_mpl = 64;    // << 6
-const unsigned fraction_shift = 65536; // << 16
+const unsigned SIZE = 131072*8*1024;     // emulate 1024MB of input bytes
+const unsigned log_return_mpl = 1 << 6;  // << 6
+const unsigned fraction_shift = 1 << 16; // << 16
 
 int main(){
     int old_log_val = 0;
@@ -46,7 +46,7 @@ int main(){
             int new_log_val = log2(fraction)*log_return_mpl;
             if (old_log_val != new_log_val) {
                 old_log_val = new_log_val;
-                printf("%i/%i %f %i == %i\n", i, SIZE, fraction*65536, new_log_val, log2_lshift16(fraction*65536));
+                printf("%i/%i %f %i == %i\n", i, SIZE, fraction*fraction_shift, new_log_val, log2_lshift16(fraction*fraction_shift));
                 if (old_log_val == 0)
                     break;
             }
