@@ -13,13 +13,13 @@ int main(){
     unsigned i;
     unsigned fraction_lshift16_old = 0;
     if (gen) {
-        printf("/*");
-        printf(" * Precalculated log2 values");
-        printf(" * Shifting used for avoiding floating point");
-        printf(" * Fraction must be left shifted by 16");
-        printf(" * Return of log are left shifted by 6");
-        printf(" */");
-        printf("int log2_lshift16(long long unsigned lshift16){");
+        printf("/*\n");
+        printf(" * Precalculated log2 values\n");
+        printf(" * Shifting used for avoiding floating point\n");
+        printf(" * Fraction must be left shifted by 16\n");
+        printf(" * Return of log are left shifted by 6\n");
+        printf(" */\n");
+        printf("int log2_lshift16(long long unsigned lshift16){\n");
         for (i = 1; i < SIZE; i++) {
             double fraction = (double) i/ (double) SIZE;
             unsigned fraction_lshift16 = fraction*fraction_shift;
