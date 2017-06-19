@@ -8,7 +8,7 @@ I've writen C/C++ realization of:
 
 ```
 # Compile:
-~$ for file in ./*.cpp; g++ -O3 $file -o $(basename $file .cpp).bin
+~$ make
 # Example of genering test data
 ~$ dd if=/dev/urandom bs=4M count=1 of=indata.bin
 ```
