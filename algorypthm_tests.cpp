@@ -9,7 +9,7 @@
 
 using namespace std;
 
-const uint32_t SIZE = 128*1024*8*4;
+const uint32_t SIZE = 128*1024*8*4; // 4MB
 
 int main(){
     srand (time(NULL));
@@ -22,7 +22,7 @@ int main(){
     }
 
     for (uint32_t i = 0; i < SIZE/4; i++) {
-        //if (rand()%32 == 0) P4B[i]=32;
+        if (rand()%32 == 256) P4B[i]=32;
     }
 
     { // AVG Meaning calculation
@@ -41,13 +41,10 @@ int main(){
     }
     { // Shannon entropy calculation
         uint8_t *P1B = (uint8_t *) PAGE;
-        uint16_t array[256];
-        for (uint32_t i = 0; i < 256; i++) array[i] = 0;
+        uint64_t *array = (uint64_t *) calloc(256, sizeof(uint64_t));
 
-        for (uint32_t i = 0; i < SIZE; i++) {
-            uint8_t VAL = P1B[i];
-            array[VAL]++;
-        }
+        for (uint32_t i = 0; i < SIZE; i++)
+            array[P1B[i]]++;
 
         {
             double entropy = 0;
@@ -67,8 +64,9 @@ int main(){
                 entropy += -val*log2_lshift16(val);
             }
             entropy_d = entropy;
-            cout << "Schanon integer entropy: " << entropy/65536 << "/128 == " \
-                 << entropy_d*100/65536/128 << "%" << '\n';
+            cout << "Schanon integer entropy: " << entropy/65536 << "/512 == " \
+                 << entropy_d*100/65536/512 << "%" << '\n';
         }
+        free(array);
     }
 }

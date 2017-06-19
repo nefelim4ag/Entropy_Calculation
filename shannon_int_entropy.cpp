@@ -10,8 +10,7 @@
 int main() {
     int64_t count = 0;
 
-    uint32_t array[256];
-    for (uint32_t i = 0; i < 256; i++) array[i] = 0;
+    uint64_t *array = (uint64_t *) calloc(256, sizeof(uint64_t));
 
     std::ifstream infile("indata.bin");
 
@@ -39,5 +38,6 @@ int main() {
         entropy += -val*log2_lshift16(val);
     }
     double entropy_d = entropy;
-    std::cout << "Schanon int entropy: " << entropy/65536 << "/128 == " << entropy_d*100/65536/128 << "%" << '\n';
+    std::cout << "Schanon int entropy: " << entropy/65536 << "/512 == " << entropy_d*100/65536/512 << "%" << '\n';
+    free(array);
 }
