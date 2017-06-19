@@ -3,7 +3,7 @@ PREFIX ?= /
 CPPFLAGS=-O2 -Wall
 CXX=g++
 
-default all: log2_generator avg_meaning_entropy shannon_entropy shannon_int_entropy
+default all: log2_generator avg_meaning_entropy shannon_entropy shannon_int_entropy algorypthm_tests
 
 log2_generator: log2_generator.o
 	$(CXX) $(CPPFLAGS) -o log2_generator log2_generator.o
