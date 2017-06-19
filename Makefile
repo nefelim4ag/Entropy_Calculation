@@ -1,6 +1,6 @@
 PREFIX ?= /
 
-CPPFLAGS=-O2 -Wall
+CPPFLAGS=-O2 -Wall -Werror
 CXX=g++
 
 default all: log2_generator avg_meaning_entropy shannon_entropy shannon_int_entropy algorypthm_tests
