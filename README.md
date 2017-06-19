@@ -15,6 +15,11 @@ All that shifts used for avoid of using floating point in calculation
 
 log2_lshift16.h - store precalculated function (log2(arg << 24)) << 6
 
+Values are precalculated only for:
+```
+1/1073741824 ... 1073741824/1073741824
+```
+
 This code does not accept args, just try reading data from: ./indata.bin
 
 performance_test.sh - stupid but simple methods to compare algorithms
