@@ -22,7 +22,7 @@ avg_meaning_entropy.o: avg_meaning_entropy.cpp
 shannon_entropy: shannon_entropy.o
 	$(CXX) $(CPPFLAGS) -o shannon_entropy shannon_entropy.o
 
-shannon_entropy.o: avg_meaning_entropy.cpp
+shannon_entropy.o: shannon_entropy.cpp
 	$(CXX) $(CPPFLAGS) -c shannon_entropy.cpp
 
 
