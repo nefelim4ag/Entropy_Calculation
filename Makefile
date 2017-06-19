@@ -5,17 +5,33 @@ CXX=g++
 
 default all: log2_generator avg_meaning_entropy shannon_entropy shannon_int_entropy
 
-log2_generator:
-	$(CXX) $(CPPFLAGS) log2_generator.cpp -o log2_generator
+log2_generator: log2_generator.o
+	$(CXX) $(CPPFLAGS) -o log2_generator log2_generator.o
 
-avg_meaning_entropy:
-	$(CXX) $(CPPFLAGS) avg_meaning_entropy.cpp -o avg_meaning_entropy
+log2_generator.o: log2_generator.cpp
+	$(CXX) $(CPPFLAGS) -c log2_generator.cpp
 
-shannon_entropy:
-	$(CXX) $(CPPFLAGS) shannon_entropy.cpp -o shannon_entropy
 
-shannon_int_entropy:
-	$(CXX) $(CPPFLAGS) shannon_int_entropy.cpp -o shannon_int_entropy
+avg_meaning_entropy: avg_meaning_entropy.o
+	$(CXX) $(CPPFLAGS) -o avg_meaning_entropy avg_meaning_entropy.o
+
+avg_meaning_entropy.o: avg_meaning_entropy.cpp
+	$(CXX) $(CPPFLAGS) -c avg_meaning_entropy.cpp
+
+
+shannon_entropy: shannon_entropy.o
+	$(CXX) $(CPPFLAGS) -o shannon_entropy shannon_entropy.o
+
+shannon_entropy.o: avg_meaning_entropy.cpp
+	$(CXX) $(CPPFLAGS) -c shannon_entropy.cpp
+
+
+shannon_int_entropy: shannon_int_entropy.o
+	$(CXX) $(CPPFLAGS) -o shannon_int_entropy shannon_int_entropy.o
+
+shannon_int_entropy.o: shannon_int_entropy.cpp
+	$(CXX) $(CPPFLAGS) -c shannon_int_entropy.cpp
+
 
 clean: ## Cleanup
 	git clean -dfx
