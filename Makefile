@@ -15,10 +15,10 @@ log2_generator.o: log2_generator.cpp log2_lshift16.h
 
 
 avg_meaning_entropy: avg_meaning_entropy.o
-	$(CXX) $(CPPFLAGS) -o avg_meaning_entropy avg_meaning_entropy.o
+	$(CC) $(CFLAGS) -o avg_meaning_entropy avg_meaning_entropy.o
 
 avg_meaning_entropy.o: avg_meaning_entropy.c
-	$(CXX) $(CPPFLAGS) -c avg_meaning_entropy.c
+	$(CC) $(CFLAGS) -c avg_meaning_entropy.c
 
 
 shannon_entropy: shannon_entropy.o
@@ -38,8 +38,8 @@ shannon_int_entropy.o: shannon_int_entropy.c log2_lshift16.h
 algorypthm_tests: algorypthm_tests.o
 	$(CXX) $(CPPFLAGS) -o algorypthm_tests algorypthm_tests.o
 
-algorypthm_tests.o: algorypthm_tests.cpp log2_lshift16.h
-	$(CXX) $(CPPFLAGS) -c algorypthm_tests.cpp
+algorypthm_tests.o: algorypthm_tests.c log2_lshift16.h
+	$(CXX) $(CPPFLAGS) -c algorypthm_tests.c
 
 clean: ## Cleanup
 	git clean -dfx
