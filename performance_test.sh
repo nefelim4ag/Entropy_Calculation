@@ -46,7 +46,7 @@ gzip_lvl_3(){
     echo -n "gzip -f -k -3 ./indata.bin "
     START=$(date +%s)
     for i in {1..10000}; do
-        gzip -f -k -3 ./indata.bin > /dev/null
+        gzip -c -f -k -3 ./indata.bin > /dev/null
     done
     STOP=$(date +%s)
     echo "$(($STOP-$START))s"
@@ -56,7 +56,7 @@ lzo_lvl_3(){
     echo -n "lzop -f -k -3 ./indata.bin "
     START=$(date +%s)
     for i in {1..10000}; do
-        lzop -f -k -3 ./indata.bin > /dev/null
+        lzop -c -k -3 ./indata.bin > /dev/null
     done
     STOP=$(date +%s)
     echo "$(($STOP-$START))s"
