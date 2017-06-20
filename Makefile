@@ -1,7 +1,7 @@
 CFLAGS=-O2 -Wall -Werror -lm
 CC=gcc
 
-default all: log2_generator avg_meaning_entropy shannon_entropy shannon_int_entropy shannon_int_entropy_heuristic
+default all: log2_generator avg_meaning_entropy shannon_entropy shannon_int_entropy shannon_int_entropy_heuristic entropy_calc
 
 log2_generator: log2_generator.o
 	$(CC) $(CFLAGS) -o log2_generator log2_generator.o log2_lshift16.o
@@ -10,11 +10,14 @@ log2_generator.o: log2_generator.c log2_lshift16.c
 	$(CC) $(CFLAGS) -c log2_generator.c log2_lshift16.c
 
 
-avg_meaning_entropy: avg_meaning_entropy.o
-	$(CC) $(CFLAGS) -o avg_meaning_entropy avg_meaning_entropy.o
+entropy_calc: entropy_calc.o avg_mean.o
+	$(CC) $(CFLAGS) -o entropy_calc entropy_calc.o avg_mean.o
 
-avg_meaning_entropy.o: avg_meaning_entropy.c
-	$(CC) $(CFLAGS) -c avg_meaning_entropy.c
+entropy_calc.o: entropy_calc.c
+	$(CC) $(CFLAGS) -c entropy_calc.c
+
+avg_mean.o: avg_mean.c
+	$(CC) $(CFLAGS) -c avg_mean.c
 
 
 shannon_entropy: shannon_entropy.o

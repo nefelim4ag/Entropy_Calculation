@@ -8,9 +8,6 @@
 /* Precalculated log2 realization */
 #include "log2_lshift16.h"
 
-#define LOG2_ARG_SHIFT (1 << 16)
-#define LOG2_RET_SHIFT (1 << 6)
-
 /* Shannon integer entropy calculation + some heuristic */
 #define BUCKET_SIZE (1 << 8)
 int main(int argc, char *argv[]) {
