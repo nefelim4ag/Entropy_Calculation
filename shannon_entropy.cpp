@@ -1,12 +1,18 @@
-#include <fstream>
-#include <cmath>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include <math.h>
 
 /* Shannon entropy calculation */
 #define BUCKET_SIZE 1 << 8
 
-int main() {
+int main(int argc, char *argv[]) {
     int64_t count = 0;
     double entropy = 0;
+    FILE *file;
 
     /*
      * For small data set it's possible to change size of word
@@ -15,22 +21,23 @@ int main() {
      */
     uint32_t *array = (uint32_t *) calloc(BUCKET_SIZE, sizeof(uint32_t));
 
-    std::ifstream infile("indata.bin");
+    file = fopen(argv[1], "rb");
 
-    if (!infile.is_open()) {
-        printf("Can't open file: ./indata.bin\n");
+    if (!file) {
+        printf("Can't open file: %s\n", argv[1]);
         return 1;
     }
 
     /* Try add compiller some space for vectorization */
-    while (!infile.eof()) {
+    while (!feof(file)) {
         uint8_t B4[8];
-        infile.read((char *) &B4, sizeof(B4));
+        fread(&B4, sizeof(B4), 1, file);
         for (uint8_t i = 0; i < sizeof(B4); i++) {
             array[B4[i]]++;
         }
         count+=sizeof(B4);
     }
+    fclose(file);
 
     for (uint16_t i = 0; i < BUCKET_SIZE; i++) {
         if (array[i]) {
