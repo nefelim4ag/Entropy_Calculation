@@ -20,16 +20,16 @@ Values are precalculated only for:
 1/1073741824 ... 1073741824/1073741824
 ```
 
-This code does not accept args, just try reading data from: ./indata.bin
-
 performance_test.sh - stupid but simple methods to compare algorithms
 
 ```
 # Compile:
 ~$ make
 
-# Example of genering test data
+# Example of test
 ~$ dd if=/dev/urandom bs=4M count=1 of=indata.bin
+~$ ./shannon_int_entropy ./indata.bin
+Schanon int entropy: 510/512 ~= 99.660975%
 
 # Run performance test script
 ./performance_test.sh
