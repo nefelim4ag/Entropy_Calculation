@@ -7,9 +7,9 @@ const unsigned SIZE = 131072*8*1024;     // emulate 1024MB of input bytes
 const unsigned log_return_mpl = 1 << 6;  // << 6
 const unsigned fraction_shift = 1 << 16; // << 16
 
-int main(){
+int main(int argc, char *argv[]){
     int old_log_val = 0;
-    bool gen = 0;
+    bool gen = atoi(argv[1]);
     unsigned i;
     unsigned fraction_lshift16_old = 0;
     if (gen) {
