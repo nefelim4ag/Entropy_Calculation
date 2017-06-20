@@ -1,2 +1,5 @@
-/*.o
-/*.bin
+*.o
+*.bin
+log2_generator
+entropy_calc
+indata.bin*
