@@ -6,10 +6,6 @@
 #include <time.h>       /* time */
 #include "log2_lshift16.h"
 
-double log2( double n ){
-    return log( n ) / log( 2 );
-}
-
 const uint32_t SIZE = 128*1024*8*4; // 4MB
 
 #define LOG2_ARG_SHIFT (1 << 16)
