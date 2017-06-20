@@ -9,6 +9,7 @@
 
 /* Entropy calculation methods */
 #include "avg_mean.h"
+#include "shannon_f.h"
 
 #include "log2_lshift16.h"
 
@@ -55,6 +56,7 @@ int main(int argc, char *argv[]) {
         avg_mean(input_data, file_size);
         break;;
     case SHANNON_F:
+        shannon_f(input_data, file_size);
         break;;
     case SHANNON_I:
         break;;
