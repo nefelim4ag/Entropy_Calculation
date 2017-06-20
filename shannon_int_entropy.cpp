@@ -1,8 +1,5 @@
-#include <iostream>
 #include <fstream>
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
+
 /* Precalculated log2 realization */
 #include "log2_lshift16.h"
 
@@ -23,10 +20,8 @@ int main() {
     uint32_t *array = (uint32_t *) calloc(BUCKET_SIZE, sizeof(uint32_t));
     std::ifstream infile("indata.bin");
 
-    if (infile.is_open()) {
-        std::cout << "Open file: ./indata.bin\n";
-    } else {
-        std::cout << "Can't open file: ./indata.bin\n";
+    if (!infile.is_open()) {
+        printf("Can't open file: ./indata.bin\n");
         return 1;
     }
 

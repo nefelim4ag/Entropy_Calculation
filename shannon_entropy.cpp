@@ -1,7 +1,4 @@
-#include <iostream>
 #include <fstream>
-#include <cstdio>
-#include <cstdlib>
 #include <cmath>
 
 /* Shannon entropy calculation */
@@ -20,10 +17,8 @@ int main() {
 
     std::ifstream infile("indata.bin");
 
-    if (infile.is_open()) {
-        std::cout << "Open file: ./indata.bin\n";
-    } else {
-        std::cout << "Can't open file: ./indata.bin\n";
+    if (!infile.is_open()) {
+        printf("Can't open file: ./indata.bin\n");
         return 1;
     }
 
