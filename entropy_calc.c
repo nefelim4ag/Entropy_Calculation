@@ -11,6 +11,7 @@
 #include "avg_mean.h"
 #include "shannon_f.h"
 #include "shannon_i.h"
+#include "heuristic.h"
 
 #define AVG_MEAN  1
 #define SHANNON_F 2
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]) {
 
     /* Check num of args */
     if (argc != 3) {
-        printf("%s <mode_num 1-4> <file_path>", argv[0]);
+        printf("%s <mode_num 1-4> <file_path>\n", argv[0]);
         return 1;
     }
 
@@ -44,7 +45,7 @@ int main(int argc, char *argv[]) {
     file_size = file_stat.st_size;
 
     if (file_size >= max_input_size) {
-        printf("Max supported input file size 4G");
+        printf("Max supported input file size 4G\n");
         return 1;
     }
 
@@ -61,9 +62,10 @@ int main(int argc, char *argv[]) {
         shannon_i(input_data, file_size);
         break;;
     case HEURISTIC:
+        heuristic(input_data, file_size);
         break;;
     default:
-        printf("%s <mode_num 1-4> <file_path>", argv[0]);
+        printf("%s <mode_num 1-4> <file_path>\n", argv[0]);
         return 1;
     }
 
