@@ -18,10 +18,19 @@
 #define SHANNON_I 3
 #define HEURISTIC 4
 
+void help(char *self_name){
+    printf("%s <mode_num 1-4> <file_path>\n", self_name);
+    printf("\t1 - avg_mean\n");
+    printf("\t2 - shannon float\n");
+    printf("\t3 - shannon integer\n");
+    printf("\t4 - heuristic\n");
+}
+
 int main(int argc, char *argv[]) {
     struct stat file_stat;
     /* Expected that: 4096 <= input data size <= 4294967296 */
-    uint64_t max_input_size = (1 << 31);
+    uint64_t max_input_size = 4294967296;
+    uint64_t min_input_size = 2048;
     uint64_t file_size;
     uint8_t *input_data;
     uint8_t mode;
@@ -29,7 +38,7 @@ int main(int argc, char *argv[]) {
 
     /* Check num of args */
     if (argc != 3) {
-        printf("%s <mode_num 1-4> <file_path>\n", argv[0]);
+        help(argv[0]);
         return 1;
     }
 
@@ -45,6 +54,10 @@ int main(int argc, char *argv[]) {
     file_size = file_stat.st_size;
 
     if (file_size >= max_input_size) {
+        printf("Max supported input file size 4G\n");
+        return 1;
+    }
+    if (file_size < min_input_size) {
         printf("Max supported input file size 4G\n");
         return 1;
     }
@@ -65,7 +78,7 @@ int main(int argc, char *argv[]) {
         heuristic(input_data, file_size);
         break;;
     default:
-        printf("%s <mode_num 1-4> <file_path>\n", argv[0]);
+        help(argv[0]);
         return 1;
     }
 
