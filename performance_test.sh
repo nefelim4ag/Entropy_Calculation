@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 cd "$(dirname $0)"
 
@@ -13,60 +13,60 @@ rnd_zero_50_50(){
 }
 
 avg_mean_test(){
-    echo -n "avg_meaning_entropy "
+    echo -en "avg mean:\t"
     START=$(date +%s)
     for i in {1..10000}; do
-        ./avg_meaning_entropy ./indata.bin > /dev/null
+        ./entropy_calc 1 ./indata.bin > /dev/null
     done
     STOP=$(date +%s)
     echo "$(($STOP-$START))s"
 }
 
 shannon_entropy(){
-    echo -n "shannon_entropy "
+    echo -en "shannon float:\t"
     START=$(date +%s)
     for i in {1..10000}; do
-        ./shannon_entropy ./indata.bin > /dev/null
+        ./entropy_calc 2 ./indata.bin > /dev/null
     done
     STOP=$(date +%s)
     echo "$(($STOP-$START))s"
 }
 
 shannon_int_entropy(){
-    echo -n "shannon_int_entropy "
+    echo -en "shannon integ:\t"
     START=$(date +%s)
     for i in {1..10000}; do
-        ./shannon_int_entropy ./indata.bin > /dev/null
+        ./entropy_calc 3 ./indata.bin > /dev/null
     done
     STOP=$(date +%s)
     echo "$(($STOP-$START))s"
 }
 
 shannon_int_entropy_heuristic(){
-    echo -n "shannon_int_entropy_heuristic "
+    echo -en "heuristic:\t"
     START=$(date +%s)
     for i in {1..10000}; do
-        ./shannon_int_entropy_heuristic ./indata.bin > /dev/null
+        ./entropy_calc 4 ./indata.bin > /dev/null
     done
     STOP=$(date +%s)
     echo "$(($STOP-$START))s"
 }
 
 gzip_lvl_3(){
-    echo -n "gzip -f -k -3 ./indata.bin "
+    echo -en "gzip -ck -3 ./indata.bin:\t"
     START=$(date +%s)
     for i in {1..10000}; do
-        gzip -c -f -k -3 ./indata.bin > /dev/null
+        gzip -c -k -3 ./indata.bin > /dev/null
     done
     STOP=$(date +%s)
     echo "$(($STOP-$START))s"
 }
 
 lzo_lvl_3(){
-    echo -n "lzop -f -k -3 ./indata.bin "
+    echo -en "lzop -ck -3 ./indata.bin:\t"
     START=$(date +%s)
     for i in {1..10000}; do
-        lzop -c -k -3 ./indata.bin > /dev/null
+        lzop -ck -3 ./indata.bin > /dev/null
     done
     STOP=$(date +%s)
     echo "$(($STOP-$START))s"
