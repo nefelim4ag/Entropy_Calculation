@@ -33,12 +33,12 @@ int heuristic(uint8_t *input_data, uint64_t bytes_len) {
 
     if (coreset_size > 200) {
         printf("Data are bad compressible\n");
-        exit(1);
+        return 1;
     }
 
     if (coreset_size < 50) {
         printf("Data compressible\n");
-        exit(0);
+        return 0;
     }
 
     for (a = 0; a < BUCKET_SIZE; a++) {
