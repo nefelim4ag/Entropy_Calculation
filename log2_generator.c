@@ -16,6 +16,10 @@ const uint32_t fraction_shift = 1 << 16;
 
 int main(int argc, char *argv[]){
     int32_t old_log_val = 0;
+    if (argc < 2) {
+        printf("%s <0|1>\n", argv[0]);
+        return 1;
+    }
     bool gen = atoi(argv[1]);
     uint32_t i;
     uint32_t fraction_lshift16_old = 0;
