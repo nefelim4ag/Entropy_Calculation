@@ -7,7 +7,7 @@
 // AVG Meaning calculation for file
 int main() {
     int64_t sum = 0;
-    int64_t count = 0;
+    uint64_t count = 0;
     int64_t avg, entropy;
 
     std::ifstream infile("indata.bin");
@@ -22,10 +22,9 @@ int main() {
     uint32_t B4[4];
     while (!infile.eof()) {
         infile.read((char *) &B4, sizeof(B4));
-        sum+=B4[0];
-        sum+=B4[1];
-        sum+=B4[2];
-        sum+=B4[3];
+        for (uint8_t i = 0; i < sizeof(B4)/sizeof(uint32_t); i++) {
+            sum+=B4[i];
+        }
         count+=4;
     }
 
