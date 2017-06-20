@@ -1,7 +1,7 @@
 CFLAGS=-O2 -Wall -Werror -lm
 CC=gcc
 
-default all: log2_generator avg_meaning_entropy shannon_entropy shannon_int_entropy
+default all: log2_generator avg_meaning_entropy shannon_entropy shannon_int_entropy shannon_int_entropy_heuristic
 
 log2_generator: log2_generator.o
 	$(CC) $(CFLAGS) -o log2_generator log2_generator.o log2_lshift16.o
@@ -29,6 +29,14 @@ shannon_int_entropy: shannon_int_entropy.o
 
 shannon_int_entropy.o: shannon_int_entropy.c log2_lshift16.c
 	$(CC) $(CFLAGS) -c shannon_int_entropy.c log2_lshift16.c
+
+
+shannon_int_entropy_heuristic: shannon_int_entropy_heuristic.o
+	$(CC) $(CFLAGS) -o shannon_int_entropy_heuristic shannon_int_entropy_heuristic.o log2_lshift16.o
+
+shannon_int_entropy_heuristic.o: shannon_int_entropy_heuristic.c log2_lshift16.c
+	$(CC) $(CFLAGS) -c shannon_int_entropy_heuristic.c log2_lshift16.c
+
 
 clean: ## Cleanup
 	git clean -dfx
