@@ -31,4 +31,24 @@ Schanon int entropy: 510/512 ~= 99.660975%
 
 # Run performance test script
 ./performance_test.sh
+Test good compressible data
+avg_meaning_entropy 10s
+shannon_entropy 12s
+shannon_int_entropy 11s
+gzip -f -k -3 ./indata.bin 16s
+lzop -f -k -3 ./indata.bin 15s
+- - - - -
+Test half compressible data
+avg_meaning_entropy 8s
+shannon_entropy 11s
+shannon_int_entropy 9s
+gzip -f -k -3 ./indata.bin 36s
+lzop -f -k -3 ./indata.bin 12s
+- - - - -
+Test bad compressible data
+avg_meaning_entropy 9s
+shannon_entropy 11s
+shannon_int_entropy 15s
+gzip -f -k -3 ./indata.bin 64s
+lzop -f -k -3 ./indata.bin 23s
 ```
