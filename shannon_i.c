@@ -1,46 +1,25 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <fcntl.h>
 
+#include "shannon_i.h"
 /* Precalculated log2 realization */
 #include "log2_lshift16.h"
 
-#define LOG2_ARG_SHIFT (1 << 16)
-#define LOG2_RET_SHIFT (1 << 6)
+/* Shannon full integer entropy calculation */
+#define BUCKET_SIZE 1 << 8
 
-/* Shannon integer entropy calculation */
-#define BUCKET_SIZE (1 << 8)
-int main(int argc, char *argv[]) {
-    struct stat s;
+int shannon_i(uint8_t *input_data, uint64_t bytes_len) {
     uint64_t count = 0;
     uint64_t entropy_sum = 0;
     uint64_t entropy_l;
     double entropy_d;
     uint32_t i;
     /* Expected that: 4096 <= input data size <= 4294967296 */
-    uint32_t file_size;
     uint32_t *bucket = (uint32_t *) calloc(BUCKET_SIZE, sizeof(uint32_t));
-    uint8_t *input_data;
-    int64_t fd = open(argv[1], O_RDONLY);
-    if (fd == -1) {
-        printf("Can't open file: %s\n", argv[1]);
-        return 1;
-    }
 
-    /* Get the size of the file. */
-    fstat (fd, & s);
-    file_size = s.st_size;
-
-    input_data = (uint8_t *) mmap (0, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
-
-    for (i = 0; i < file_size; i++) {
+    for (i = 0; i < bytes_len; i++)
         bucket[input_data[i]]++;
-    }
-
-    // close(fd);
 
     for (i = 0; i < BUCKET_SIZE; i++)
         count += bucket[i];
@@ -57,4 +36,6 @@ int main(int argc, char *argv[]) {
     entropy_d = entropy_sum*100.0/LOG2_ARG_SHIFT/(8*LOG2_RET_SHIFT);
     printf("Schanon int entropy: %lu/512 ~= %f%%\n",
         entropy_sum/LOG2_ARG_SHIFT, entropy_d);
+
+    return 0;
 }

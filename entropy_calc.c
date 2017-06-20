@@ -10,8 +10,7 @@
 /* Entropy calculation methods */
 #include "avg_mean.h"
 #include "shannon_f.h"
-
-#include "log2_lshift16.h"
+#include "shannon_i.h"
 
 #define AVG_MEAN  1
 #define SHANNON_F 2
@@ -59,6 +58,7 @@ int main(int argc, char *argv[]) {
         shannon_f(input_data, file_size);
         break;;
     case SHANNON_I:
+        shannon_i(input_data, file_size);
         break;;
     case HEURISTIC:
         break;;
