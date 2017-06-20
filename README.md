@@ -6,8 +6,6 @@ I've writen C/C++ realization of:
 - Shannon entropy
 - Shannon entropy only with integer logic (for kernel)
 
-algorithm_tests - implementation what calculate entropy for above algo
-
 log2_generator - can generate precalculated values of log2 (and function)
 with assumption that arg will be left shifted by 16 bit
 and return value of log2_lshift16() will be left shifted by 6 bit

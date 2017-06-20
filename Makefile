@@ -30,14 +30,6 @@ shannon_int_entropy: shannon_int_entropy.o
 shannon_int_entropy.o: shannon_int_entropy.c log2_lshift16.c
 	$(CC) $(CFLAGS) -c shannon_int_entropy.c log2_lshift16.c
 
-
-algorypthm_tests: algorypthm_tests.o
-	$(CC) $(CFLAGS) -o algorypthm_tests algorypthm_tests.o log2_lshift16.o
-
-algorypthm_tests.o: algorypthm_tests.c log2_lshift16.c
-	$(CC) $(CFLAGS) -c algorypthm_tests.c log2_lshift16.c
-
-
 clean: ## Cleanup
 	git clean -dfx
 
