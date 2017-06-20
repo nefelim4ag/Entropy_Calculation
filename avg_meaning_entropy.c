@@ -4,11 +4,18 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+
+#define BUCKET_SIZE 1 << 6
+
 /* AVG Meaning calculation for file */
 int main(int argc, char *argv[]) {
     int64_t sum = 0;
     uint64_t count = 0;
+    uint32_t i;
     int64_t avg, entropy;
+    int32_t accuracy = 100000; // 5 numbers after point
+    uint32_t input_data[BUCKET_SIZE];
+
     FILE *file = fopen(argv[1], "rb");
 
     if (!file) {
@@ -16,17 +23,15 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    uint32_t B4[4];
     while (!feof(file)) {
-        fread(&B4, sizeof(B4), 1, file);
-        for (uint8_t i = 0; i < sizeof(B4)/sizeof(uint32_t); i++) {
-            sum+=B4[i];
-        }
-        count+=4;
+        fread(&input_data, BUCKET_SIZE, 4, file);
+        for (i = 0; i < BUCKET_SIZE; i++)
+            sum+=input_data[i];
+        count+=BUCKET_SIZE;
     }
     fclose(file);
 
     avg = sum / count;
-    entropy = 100000 - abs(100000 - avg*100000/2147483648); // 0-100000
+    entropy = accuracy - abs(accuracy - avg*accuracy/(1 << 31)); // 0-100000
     printf("AVG Meaning: %li ~= Entropy lvl: %li\n", avg, entropy);
 }

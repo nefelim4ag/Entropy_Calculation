@@ -14,43 +14,41 @@
 #define BUCKET_SIZE (1 << 8)
 int main(int argc, char *argv[]) {
     uint64_t count = 0;
-    uint64_t entropy = 0;
-    FILE *file;
-    /*
-     * For small data set it's possible to change size of word
-     * input data size <= 65536 byte - uint16_t
-     * input data size <= 4294967296 byte - uint32_t
-     */
-    uint32_t *array = (uint32_t *) calloc(BUCKET_SIZE, sizeof(uint32_t));
+    uint64_t entropy_sum = 0;
+    uint64_t entropy_l;
+    double entropy_d;
+    uint32_t i;
+    /* Expected that: 4096 <= input data size <= 4294967296 */
+    uint32_t *bucket = (uint32_t *) calloc(BUCKET_SIZE, sizeof(uint32_t));
+    /* Try add compiller some space for vectorization */
+    uint8_t input_data[BUCKET_SIZE];
 
-    file = fopen(argv[1], "rb");
+    FILE *file = fopen(argv[1], "rb");
     if (!file) {
         printf("Can't open file: %s\n", argv[1]);
         return 1;
     }
 
-    /* Try add compiller some space for vectorization */
+
     while (!feof(file)) {
-        uint8_t B4[8];
-        fread(&B4, sizeof(B4), 1, file);
-        for (uint8_t i = 0; i < sizeof(B4); i++) {
-            array[B4[i]]++;
-        }
-        count+=sizeof(B4);
+        fread(&input_data, BUCKET_SIZE, 1, file);
+        for (uint16_t i = 0; i < BUCKET_SIZE; i++)
+            bucket[input_data[i]]++;
+        count+=BUCKET_SIZE;
     }
     fclose(file);
 
 
-    for (uint16_t i = 0; i < BUCKET_SIZE; i++) {
-        if (array[i]) {
-            uint64_t val = array[i];
-            val = val*LOG2_ARG_SHIFT/count;
-            entropy += -val*log2_lshift16(val);
+    for (i = 0; i < BUCKET_SIZE; i++) {
+        if (bucket[i]) {
+            entropy_l = bucket[i];
+            entropy_l = entropy_l*LOG2_ARG_SHIFT/count;
+            entropy_sum += -entropy_l*log2_lshift16(entropy_l);
         }
     }
+    free(bucket);
 
-    double entropy_d = entropy*100.0/LOG2_ARG_SHIFT/(8*LOG2_RET_SHIFT);
+    entropy_d = entropy_sum*100.0/LOG2_ARG_SHIFT/(8*LOG2_RET_SHIFT);
     printf("Schanon int entropy: %lu/512 ~= %f%%\n",
-        entropy/LOG2_ARG_SHIFT, entropy_d);
-    free(array);
+        entropy_sum/LOG2_ARG_SHIFT, entropy_d);
 }

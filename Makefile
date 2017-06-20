@@ -1,7 +1,7 @@
 CFLAGS=-O2 -Wall -Werror -lm
 CC=gcc
 
-default all: log2_generator avg_meaning_entropy shannon_entropy shannon_int_entropy algorypthm_tests
+default all: log2_generator avg_meaning_entropy shannon_entropy shannon_int_entropy
 
 log2_generator: log2_generator.o
 	$(CC) $(CFLAGS) -o log2_generator log2_generator.o log2_lshift16.o

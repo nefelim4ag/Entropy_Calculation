@@ -9,43 +9,38 @@
 #define BUCKET_SIZE 1 << 8
 
 int main(int argc, char *argv[]) {
+    double entropy_sum = 0;
+    double entropy_l;
     int64_t count = 0;
-    double entropy = 0;
-    FILE *file;
+    uint32_t i = 0;
+    /* Expected that: 4096 <= input data size <= 4294967296 */
+    uint32_t *bucket = (uint32_t *) calloc(BUCKET_SIZE, sizeof(uint32_t));
+    /* Try add compiller some space for vectorization */
+    uint8_t input_data[BUCKET_SIZE];
 
-    /*
-     * For small data set it's possible to change size of word
-     * input data size <= 65536 byte - uint16_t
-     * input data size <= 4294967296 byte - uint32_t
-     */
-    uint32_t *array = (uint32_t *) calloc(BUCKET_SIZE, sizeof(uint32_t));
-
-    file = fopen(argv[1], "rb");
-
+    FILE *file = fopen(argv[1], "rb");
     if (!file) {
         printf("Can't open file: %s\n", argv[1]);
         return 1;
     }
 
-    /* Try add compiller some space for vectorization */
     while (!feof(file)) {
-        uint8_t B4[8];
-        fread(&B4, sizeof(B4), 1, file);
-        for (uint8_t i = 0; i < sizeof(B4); i++) {
-            array[B4[i]]++;
-        }
-        count+=sizeof(B4);
+        fread(&input_data, BUCKET_SIZE, 1, file);
+        for (i = 0; i < BUCKET_SIZE; i++)
+            bucket[input_data[i]]++;
+        count+=BUCKET_SIZE;
     }
     fclose(file);
 
-    for (uint16_t i = 0; i < BUCKET_SIZE; i++) {
-        if (array[i]) {
-            double val = array[i];
-            val = val/count;
-            entropy += -(val)*log2(val);
+    for (i = 0; i < BUCKET_SIZE; i++) {
+        if (bucket[i]) {
+            entropy_l = bucket[i];
+            entropy_l = entropy_l/count;
+            entropy_sum += -(entropy_l)*log2(entropy_l);
         }
     }
+    free(bucket);
 
-    printf("Schanon true entropy: %f/8 ~= %f%%\n", entropy, entropy*100/8);
-    free(array);
+    printf("Schanon true entropy: %f/8 ~= %f%%\n",
+        entropy_sum, entropy_sum*100/8);
 }
