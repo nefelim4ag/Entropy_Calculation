@@ -2,26 +2,48 @@
 
 cd "$(dirname $0)"
 
+# Gen test data
 {
-    dd if=/dev/urandom bs=1M count=4
-    dd if=/dev/zero bs=1M count=4
+    dd if=/dev/urandom bs=64K count=1
+    dd if=/dev/zero    bs=64K count=1
 } > indata.bin
 
 echo "---"
-time  ./avg_meaning_entropy
-echo "---"
-time ./shannon_entropy
-echo "---"
-time ./shannon_int_entropy
-echo "---"
-for lvl in {1..9}; do
-    echo gzip -f -k -$lvl indata.bin
-    time gzip -f -k -$lvl indata.bin
-    echo "---"
+echo avg_meaning_entropy
+date
+for i in {1..10000}; do
+    ./avg_meaning_entropy > /dev/null
 done
+date
 
-for lvl in {1..9}; do
-    echo lzop -f -k -$lvl indata.bin
-    time lzop -f -k -$lvl indata.bin
-    echo "---"
+echo "---"
+echo shannon_entropy
+date
+for i in {1..10000}; do
+    ./shannon_entropy > /dev/null
 done
+date
+
+echo "---"
+echo shannon_int_entropy
+date
+for i in {1..10000}; do
+    ./shannon_int_entropy > /dev/null
+done
+date
+
+echo "---"
+echo gzip -f -k -3 indata.bin
+date
+for i in {1..10000}; do
+    gzip -f -k -3 indata.bin > /dev/null
+done
+date
+
+echo "---"
+echo lzop -f -k -3 indata.bin
+date
+for i in {1..10000}; do
+    lzop -f -k -3 indata.bin > /dev/null
+done
+date
