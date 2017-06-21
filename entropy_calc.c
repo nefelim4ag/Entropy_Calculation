@@ -21,6 +21,7 @@
 
 void help(char *self_name){
     printf("%s <mode_num 1-4> <file_path>\n", self_name);
+    printf("\t0 - for init time measurement, do nothing\n");
     printf("\t1 - avg_mean\n");
     printf("\t2 - shannon float\n");
     printf("\t3 - shannon integer\n");
