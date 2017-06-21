@@ -88,9 +88,9 @@ int main(int argc, char *argv[]) {
         break;;
     case HEURISTIC:
         if (heuristic(input_data, file_size)) {
-            printf("Try compressible\n");
+            printf("Compress\n");
         } else {
-            printf("Skip compressible\n");
+            printf("Not Compress\n");
         }
         break;;
     default:
