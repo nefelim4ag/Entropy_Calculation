@@ -62,7 +62,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    input_data = (uint8_t *) mmap (0, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    int prot = PROT_READ|PROT_NONE;
+    int map_flags =  MAP_SHARED|MAP_POPULATE;
+    input_data = (uint8_t *) mmap (0, file_size, prot, map_flags, fd, 0);
 
     switch (mode) {
     case AVG_MEAN:
@@ -75,7 +77,11 @@ int main(int argc, char *argv[]) {
         shannon_i(input_data, file_size);
         break;;
     case HEURISTIC:
-        heuristic(input_data, file_size);
+        if (heuristic(input_data, file_size)) {
+            printf("Try compressible\n");
+        } else {
+            printf("Skip compressible\n");
+        }
         break;;
     default:
         help(argv[0]);
