@@ -34,8 +34,8 @@ int shannon_i(uint8_t *input_data, uint64_t bytes_len) {
     free(bucket);
 
     entropy_d = entropy_sum*100.0/LOG2_ARG_SHIFT/(8*LOG2_RET_SHIFT);
-    printf("Schanon int entropy: %lu/512 ~= %f%%\n",
-        entropy_sum/LOG2_ARG_SHIFT, entropy_d);
+    printf("Schanon int entropy: %lu/%u ~= %f%%\n",
+        entropy_sum/LOG2_ARG_SHIFT, 8*LOG2_RET_SHIFT ,entropy_d);
 
     return 0;
 }
