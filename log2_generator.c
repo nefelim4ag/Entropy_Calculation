@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
         printf(" * Precalculated log2 values\n");
         printf(" * Shifting used for avoiding floating point\n");
         printf(" * Fraction must be left shifted by 16\n");
-        printf(" * Return of log are left shifted by 6\n");
+        printf(" * Return of log are left shifted by 3\n");
         printf(" */\n");
         printf("int log2_lshift16(long long unsigned lshift16){\n");
         for (i = 1; i < max_input_size; i++) {

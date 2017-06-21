@@ -9,11 +9,11 @@ I've writen C/C++ realization of:
 
 log2_generator - can generate precalculated values of log2 (and function)
 with assumption that arg will be left shifted by 16 bit
-and return value of log2_lshift16() will be left shifted by 6 bit
+and return value of log2_lshift16() will be left shifted by 3 bit
 All that shifts used for avoid of using floating point in calculation
 
 log2_lshift16.h - header
-log2_lshift16.c - store precalculated function (log2(arg << 24)) << 6
+log2_lshift16.c - store precalculated function (log2(arg << 24)) << 3
 
 Values are precalculated only for:
 ```
