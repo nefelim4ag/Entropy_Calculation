@@ -13,6 +13,7 @@
 #include "shannon_i.h"
 #include "heuristic.h"
 
+#define INIT_PROF 0 // Just for get init time + file reading
 #define AVG_MEAN  1
 #define SHANNON_F 2
 #define SHANNON_I 3
@@ -35,6 +36,8 @@ int main(int argc, char *argv[]) {
     uint8_t *input_data;
     uint8_t mode;
     int64_t fd;
+    uint64_t black_hole = 0;
+    uint64_t *_input_data;
 
     /* Check num of args */
     if (argc != 3) {
@@ -65,8 +68,14 @@ int main(int argc, char *argv[]) {
     int prot = PROT_READ|PROT_NONE;
     int map_flags =  MAP_SHARED|MAP_POPULATE;
     input_data = (uint8_t *) mmap (0, file_size, prot, map_flags, fd, 0);
+    _input_data = (uint64_t *) input_data;
 
     switch (mode) {
+    case INIT_PROF:
+        _input_data = (uint64_t *) input_data;
+        for (uint32_t i = 0; i < file_size/8; i++)
+            black_hole += _input_data[i];
+        break;;
     case AVG_MEAN:
         avg_mean(input_data, file_size);
         break;;
