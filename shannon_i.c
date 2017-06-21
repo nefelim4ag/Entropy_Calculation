@@ -9,7 +9,7 @@
 /* Shannon full integer entropy calculation */
 #define BUCKET_SIZE 1 << 8
 
-int shannon_i(uint8_t *input_data, uint64_t bytes_len) {
+int shannon_i(const uint8_t *input_data, const uint64_t bytes_len) {
     uint64_t count = bytes_len;
     uint64_t entropy_sum = 0;
     uint64_t entropy_max = 8*LOG2_RET_SHIFT;

@@ -12,7 +12,7 @@
 #define BUCKET_SIZE (1 << 8)
 
 /* true - try compress, false - ignore */
-bool heuristic(uint8_t *input_data, uint64_t bytes_len) {
+bool heuristic(const uint8_t *input_data, const uint64_t bytes_len) {
     bool ret = false;
     uint32_t std_dev;
     uint32_t count = 0;

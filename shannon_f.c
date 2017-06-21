@@ -8,7 +8,7 @@
 /* Shannon entropy calculation */
 #define BUCKET_SIZE 1 << 8
 
-int shannon_f(uint8_t *input_data, uint64_t bytes_len) {
+int shannon_f(const uint8_t *input_data, const uint64_t bytes_len) {
     double entropy_sum = 0;
     double entropy_max = 8;
     uint64_t count = bytes_len;

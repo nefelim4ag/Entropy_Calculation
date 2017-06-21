@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "avg_mean.h"
 
-int avg_mean(uint8_t *input_data, uint64_t bytes_len) {
+int avg_mean(const uint8_t *input_data, const uint64_t bytes_len) {
     uint64_t sum = 0;
     uint64_t count = bytes_len/sizeof(uint32_t);
     uint64_t avg;

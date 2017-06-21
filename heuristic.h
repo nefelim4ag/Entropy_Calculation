@@ -1,4 +1,4 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-bool heuristic(uint8_t *input_data, uint64_t bytes_len);
+bool heuristic(const uint8_t *input_data, const uint64_t bytes_len);
