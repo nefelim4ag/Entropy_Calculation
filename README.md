@@ -36,29 +36,60 @@ Schanon int entropy: 510/512 ~= 99.660975%
 
 ###
 # Run performance test script
+# I think that 90% of time losts in initialization process
 ./performance_test.sh
 
-Test good compressible data
+Test good compressible data: 128k
 avg mean:       8s
-shannon float:  12s
+shannon float:  11s
 shannon integ:  12s
 heuristic:      8s
-gzip -ck -3 ./indata.bin:       17s
-lzop -ck -3 ./indata.bin:       13s
+gzip -ck -3 ./indata.bin:       18s
+lzop -ck -3 ./indata.bin:       14s
+lzop -ck -1 ./indata.bin:       14s
 - - - - -
-Test half compressible data
-avg mean:       8s
-shannon float:  12s
+Test half compressible data: 128k
+avg mean:       9s
+shannon float:  11s
 shannon integ:  11s
 heuristic:      8s
-gzip -ck -3 ./indata.bin:       38s
-lzop -ck -3 ./indata.bin:       15s
+gzip -ck -3 ./indata.bin:       36s
+lzop -ck -3 ./indata.bin:       14s
+lzop -ck -1 ./indata.bin:       14s
 - - - - -
-Test bad compressible data
+Test bad compressible data: 128k
 avg mean:       8s
 shannon float:  10s
 shannon integ:  10s
 heuristic:      8s
-gzip -ck -3 ./indata.bin:       61s
+gzip -ck -3 ./indata.bin:       62s
+lzop -ck -3 ./indata.bin:       14s
+lzop -ck -1 ./indata.bin:       14s
+- - - - -
+Test good compressible data: 8k
+avg mean:       7s
+shannon float:  9s
+shannon integ:  8s
+heuristic:      7s
+gzip -ck -3 ./indata.bin:       8s
 lzop -ck -3 ./indata.bin:       13s
+lzop -ck -1 ./indata.bin:       13s
+- - - - -
+Test half compressible data: 8k
+avg mean:       7s
+shannon float:  9s
+shannon integ:  8s
+heuristic:      8s
+gzip -ck -3 ./indata.bin:       9s
+lzop -ck -3 ./indata.bin:       13s
+lzop -ck -1 ./indata.bin:       13s
+- - - - -
+Test bad compressible data: 8k
+avg mean:       8s
+shannon float:  8s
+shannon integ:  8s
+heuristic:      8s
+gzip -ck -3 ./indata.bin:       10s
+lzop -ck -3 ./indata.bin:       12s
+lzop -ck -1 ./indata.bin:       12s
 ```

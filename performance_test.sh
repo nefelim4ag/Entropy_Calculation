@@ -1,12 +1,12 @@
 #!/bin/bash
 
-cd "$(dirname $0)"
+cd "$(dirname $0)" || exit 1
 
 # Gen test data
-rnd_zero_100_0(){ dd if=/dev/urandom bs=128K count=1 2> /dev/null; }
-rnd_zero_0_100(){ dd if=/dev/zero    bs=128K count=1 2> /dev/null; }
+rnd_zero_100_0(){ dd if=/dev/urandom bs=$1 count=1 2> /dev/null; }
+rnd_zero_0_100(){ dd if=/dev/zero    bs=$1 count=1 2> /dev/null; }
 rnd_zero_50_50(){
-    for i in {0..15}; do
+    for i in $(seq 1 $1); do
         dd if=/dev/urandom bs=4K count=1 2> /dev/null
         dd if=/dev/zero    bs=4K count=1 2> /dev/null
     done
@@ -72,8 +72,9 @@ lzo_lvl(){
     echo "$(($STOP-$START))s"
 }
 
-echo "Test good compressible data"
-rnd_zero_0_100 > indata.bin
+
+echo "Test good compressible data: 128k"
+rnd_zero_0_100 128K > indata.bin
 avg_mean_test
 shannon_entropy
 shannon_int_entropy
@@ -84,8 +85,8 @@ lzo_lvl 1
 
 echo "- - - - -"
 
-echo "Test half compressible data"
-rnd_zero_50_50 > indata.bin
+echo "Test half compressible data: 128k"
+rnd_zero_50_50 15 > indata.bin
 avg_mean_test
 shannon_entropy
 shannon_int_entropy
@@ -96,8 +97,44 @@ lzo_lvl 1
 
 echo "- - - - -"
 
-echo "Test bad compressible data"
-rnd_zero_100_0 > indata.bin
+echo "Test bad compressible data: 128k"
+rnd_zero_100_0 128K > indata.bin
+avg_mean_test
+shannon_entropy
+shannon_int_entropy
+shannon_int_entropy_heuristic
+gzip_lvl 3
+lzo_lvl 3
+lzo_lvl 1
+
+echo "- - - - -"
+
+echo "Test good compressible data: 8k"
+rnd_zero_0_100 8K > indata.bin
+avg_mean_test
+shannon_entropy
+shannon_int_entropy
+shannon_int_entropy_heuristic
+gzip_lvl 3
+lzo_lvl 3
+lzo_lvl 1
+
+echo "- - - - -"
+
+echo "Test half compressible data: 8k"
+rnd_zero_50_50 1 > indata.bin
+avg_mean_test
+shannon_entropy
+shannon_int_entropy
+shannon_int_entropy_heuristic
+gzip_lvl 3
+lzo_lvl 3
+lzo_lvl 1
+
+echo "- - - - -"
+
+echo "Test bad compressible data: 8k"
+rnd_zero_100_0 8K > indata.bin
 avg_mean_test
 shannon_entropy
 shannon_int_entropy
