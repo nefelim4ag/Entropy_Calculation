@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -6,53 +7,50 @@
 /* Precalculated log2 realization */
 #include "log2_lshift16.h"
 
-/* Shannon full integer entropy calculation */
-#define BUCKET_SIZE 1 << 8
+/* For shannon full integer entropy calculation */
+#define BUCKET_SIZE 1 << 8 // 256 counters
 
-int heuristic(uint8_t *input_data, uint64_t bytes_len) {
-    uint64_t count = 0;
+/* true - try compress, false - ignore */
+bool heuristic(uint8_t *input_data, uint64_t bytes_len) {
+    bool ret = false;
+    uint32_t count = 0;
     uint64_t entropy_sum = 0;
-    uint64_t entropy_l;
-    double entropy_d;
-    uint16_t coreset_size = 0;
+    uint16_t charset_size = 0;
     uint32_t a, b;
-    uint32_t *bucket = (uint32_t *) calloc(BUCKET_SIZE, sizeof(uint32_t));
+    uint64_t rand = (uint64_t) &input_data;
+    uint16_t *bucket = (uint16_t *) calloc(BUCKET_SIZE, sizeof(uint16_t));
+    uint16_t offset_count = 128+rand%128;
 
-    /* Read small subset of data ~2kb */
-    for (a = 0; a < bytes_len; a+=bytes_len/128) {
-        for (b = 0; b < 16; b++)
+    /* Read small subset of data 2kb-4kb */
+    for (a = 0; a < bytes_len; a+=bytes_len/offset_count) {
+        for (b = 0; b < 16 && (a+b) < bytes_len; b++) {
             bucket[input_data[a+b]]++;
+        }
     }
 
-    for (a = 0; a < BUCKET_SIZE; a++)
+    for (a = 0; a < BUCKET_SIZE; a++) {
         count += bucket[a];
-
-    for (a = 0; a < BUCKET_SIZE; a++)
         if (bucket[a])
-            coreset_size++;
-
-    if (coreset_size > 200) {
-        printf("Data are bad compressible\n");
-        return 1;
+            charset_size++;
     }
 
-    if (coreset_size < 50) {
-        printf("Data compressible\n");
-        return 0;
+    if (charset_size < 64) {
+        ret = true;
+        goto out;
     }
 
     for (a = 0; a < BUCKET_SIZE; a++) {
         if (bucket[a]) {
-            entropy_l = bucket[a];
-            entropy_l = entropy_l*LOG2_ARG_SHIFT/count;
-            entropy_sum += -entropy_l*log2_lshift16(entropy_l);
+            uint64_t p = bucket[a];
+            p = p*LOG2_ARG_SHIFT/count;
+            entropy_sum += -p*log2_lshift16(p);
         }
     }
+
+    /* 4kb/128kb ~ 3,5% of 512 ~ 18*/
+    if (entropy_sum/LOG2_ARG_SHIFT < 512-18)
+        ret = true;
+out:
     free(bucket);
-
-    entropy_d = entropy_sum*100.0/LOG2_ARG_SHIFT/(8*LOG2_RET_SHIFT);
-    printf("Schanon int entropy: %lu/512 ~= %f%%\n",
-        entropy_sum/LOG2_ARG_SHIFT, entropy_d);
-
-    return 0;
+    return ret;
 }
