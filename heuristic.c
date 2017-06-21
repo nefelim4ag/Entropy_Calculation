@@ -69,7 +69,6 @@ bool heuristic(uint8_t *input_data, uint64_t bytes_len) {
     }
 
     std_dev = int_sqrt(square_sum/(count - 1));
-    printf("%u\n", std_dev);
     if (std_dev < 5) {
         ret = false;
         goto out;
@@ -89,7 +88,6 @@ bool heuristic(uint8_t *input_data, uint64_t bytes_len) {
 
     /* Assume that acceptable compression ratio are 0.90 */
     entropy_sum = entropy_sum / LOG2_ARG_SHIFT;
-    printf("%lu/%u ~ %lu\n", entropy_sum, entropy_max, entropy_sum*100/entropy_max);
     if (entropy_sum*100/entropy_max <= 90)
         ret = true;
 out:
