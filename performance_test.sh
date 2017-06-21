@@ -52,21 +52,21 @@ shannon_int_entropy_heuristic(){
     echo "$(($STOP-$START))s"
 }
 
-gzip_lvl_3(){
-    echo -en "gzip -ck -3 ./indata.bin:\t"
+gzip_lvl(){
+    echo -en "gzip -ck -$1 ./indata.bin:\t"
     START=$(date +%s)
     for i in {1..10000}; do
-        gzip -c -k -3 ./indata.bin > /dev/null
+        gzip -c -k -$1 ./indata.bin > /dev/null
     done
     STOP=$(date +%s)
     echo "$(($STOP-$START))s"
 }
 
-lzo_lvl_3(){
-    echo -en "lzop -ck -3 ./indata.bin:\t"
+lzo_lvl(){
+    echo -en "lzop -ck -$1 ./indata.bin:\t"
     START=$(date +%s)
     for i in {1..10000}; do
-        lzop -ck -3 ./indata.bin > /dev/null
+        lzop -ck -$1 ./indata.bin > /dev/null
     done
     STOP=$(date +%s)
     echo "$(($STOP-$START))s"
@@ -78,8 +78,9 @@ avg_mean_test
 shannon_entropy
 shannon_int_entropy
 shannon_int_entropy_heuristic
-gzip_lvl_3
-lzo_lvl_3
+gzip_lvl 3
+lzo_lvl 3
+lzo_lvl 1
 
 echo "- - - - -"
 
@@ -89,8 +90,9 @@ avg_mean_test
 shannon_entropy
 shannon_int_entropy
 shannon_int_entropy_heuristic
-gzip_lvl_3
-lzo_lvl_3
+gzip_lvl 3
+lzo_lvl 3
+lzo_lvl 1
 
 echo "- - - - -"
 
@@ -100,5 +102,6 @@ avg_mean_test
 shannon_entropy
 shannon_int_entropy
 shannon_int_entropy_heuristic
-gzip_lvl_3
-lzo_lvl_3
+gzip_lvl 3
+lzo_lvl 3
+lzo_lvl 1
