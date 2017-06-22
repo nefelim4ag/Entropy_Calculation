@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "shannon_f.h"
 
@@ -14,6 +15,8 @@ int shannon_f(const uint8_t *input_data, const uint64_t bytes_len) {
     uint64_t count = bytes_len;
     uint32_t i = 0;
     uint32_t bucket[256];
+
+    memset(&bucket, 0, sizeof(bucket));
 
     for (i = 0; i < bytes_len; i++)
         bucket[input_data[i]]++;

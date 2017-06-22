@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
             black_hole += _input_data[i];
         break;;
     case AVG_MEAN:
-        for (uint i = 0; i < file_size; i+=MAX_READ_SIZE) {
+        for (uint64_t i = 0; i < file_size; i+=MAX_READ_SIZE) {
             if (file_size <= MAX_READ_SIZE) {
                 avg_mean(input_data, file_size);
             } else {
@@ -80,19 +80,15 @@ int main(int argc, char *argv[]) {
         }
         break;;
     case SHANNON_F:
-        for (uint i = 0; i < file_size; i+=MAX_READ_SIZE) {
-            if (file_size <= MAX_READ_SIZE) {
-                shannon_f(input_data, file_size);
-            } else {
-                if (file_size - i > MAX_READ_SIZE)
-                    shannon_f(&input_data[i], MAX_READ_SIZE);
-                else
-                    shannon_f(&input_data[i], file_size - i);
-            }
+        for (uint64_t i = 0; i < file_size; i+=MAX_READ_SIZE) {
+            if (file_size - i >= MAX_READ_SIZE)
+                shannon_f(&input_data[i], MAX_READ_SIZE);
+            else
+                shannon_f(&input_data[i], file_size - i);
         }
         break;;
     case SHANNON_I:
-        for (uint i = 0; i < file_size; i+=MAX_READ_SIZE) {
+        for (uint64_t i = 0; i < file_size; i+=MAX_READ_SIZE) {
             if (file_size <= MAX_READ_SIZE) {
                 shannon_i(input_data, file_size);
             } else {
@@ -104,7 +100,7 @@ int main(int argc, char *argv[]) {
         }
         break;;
     case HEURISTIC:
-        for (uint i = 0; i < file_size; i+=MAX_READ_SIZE) {
+        for (uint64_t i = 0; i < file_size; i+=MAX_READ_SIZE) {
             if (file_size <= MAX_READ_SIZE) {
                 ret = heuristic(input_data, file_size);
             } else {

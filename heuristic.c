@@ -24,7 +24,7 @@ static int compare(const void *lhs, const void *rhs) {
  * Charset size over sample
  * will be small <= 64
  */
-static int _symbset_calc(const uint16_t *bucket)
+static int _symbset_calc(const uint32_t *bucket)
 {
     uint32_t a;
     uint32_t symbset_size = 0;
@@ -43,7 +43,7 @@ static int _symbset_calc(const uint16_t *bucket)
  * > 200 - bad compressible data
  * For right & fast calculation bucket must be reverse sorted
  */
-static int _coreset_calc(const uint16_t *bucket,
+static int _coreset_calc(const uint32_t *bucket,
     const uint32_t sum_threshold)
 {
     uint32_t a = 0;
@@ -58,7 +58,7 @@ static int _coreset_calc(const uint16_t *bucket,
     return a;
 }
 
-static int _entropy_perc(const uint16_t *bucket, const uint32_t sample_size)
+static int _entropy_perc(const uint32_t *bucket, const uint32_t sample_size)
 {
     uint32_t a, p;
     uint32_t entropy_sum = 0;
@@ -108,11 +108,10 @@ enum compress_advice heuristic(const uint8_t *input_data,
     const uint32_t shift = bytes_len/offset_count;
     const uint32_t sample_size = offset_count*READ_SIZE;
     uint32_t a, b;
-    uint16_t bucket[256];
+    uint32_t bucket[BUCKET_SIZE];
     uint8_t  *sample = malloc(sample_size);
 
-    for (a = 0; a < BUCKET_SIZE; a++)
-        bucket[a] = 0;
+    memset(&bucket, 0, sizeof(bucket));
 
     /* Read small subset of data 1024b-2048b */
     a = 0;
@@ -129,13 +128,12 @@ enum compress_advice heuristic(const uint8_t *input_data,
 
     a = _symbset_calc(bucket);
     if (a < 64) {
-        printf("test");
         ret = COMPRESS_COST_EASY;
         goto out;
     }
 
     /* Sort in reverse order */
-    sort(bucket, BUCKET_SIZE, sizeof(uint16_t), &compare, NULL);
+    sort(bucket, BUCKET_SIZE, sizeof(uint32_t), &compare, NULL);
 
     a = _coreset_calc(bucket, sample_size*90/100);
 

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "shannon_i.h"
 /* Precalculated log2 realization */
@@ -16,6 +17,8 @@ int shannon_i(const uint8_t *input_data, const uint64_t bytes_len) {
     double entropy_perc;
     uint32_t i;
     uint32_t bucket[256];
+
+    memset(&bucket, 0, sizeof(bucket));
 
     for (i = 0; i < bytes_len; i++)
         bucket[input_data[i]]++;
