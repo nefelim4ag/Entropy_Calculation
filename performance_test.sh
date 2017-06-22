@@ -86,7 +86,6 @@ normal_test(){
     shannon_int_entropy
     shannon_int_entropy_heuristic
     gzip_lvl 3
-    lzo_lvl 3
     lzo_lvl 1
 }
 
