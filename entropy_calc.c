@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
     int64_t fd;
     uint64_t black_hole = 0;
     uint64_t *_input_data;
+    enum compress_advice ret;
 
     /* Check num of args */
     if (argc != 3) {
@@ -67,9 +68,8 @@ int main(int argc, char *argv[]) {
     }
 
     int prot = PROT_READ|PROT_NONE;
-    int map_flags =  MAP_SHARED|MAP_POPULATE;
+    int map_flags =  MAP_SHARED;
     input_data = (uint8_t *) mmap (0, file_size, prot, map_flags, fd, 0);
-    _input_data = (uint64_t *) input_data;
 
     switch (mode) {
     case INIT_PROF:
@@ -87,12 +87,32 @@ int main(int argc, char *argv[]) {
         shannon_i(input_data, file_size);
         break;;
     case HEURISTIC:
-        if (heuristic(input_data, file_size)) {
-            printf("Compress\n");
-        } else {
-            printf("Not Compress\n");
+        #define MAX_READ_SIZE 131072
+        for (uint i = 0; i < file_size; i+=MAX_READ_SIZE) {
+            if (file_size <= MAX_READ_SIZE) {
+                ret = heuristic(input_data, file_size);
+            } else {
+                if (file_size - i > MAX_READ_SIZE)
+                    ret = heuristic(&input_data[i], MAX_READ_SIZE);
+                else
+                    ret = heuristic(&input_data[i], file_size - i);
+            }
+            switch (ret) {
+            case COMPRESS_NONE:
+                printf("Not Compress\n");
+                break;;
+            case COMPRESS_COST_EASY:
+                printf("Compress cost: EASY\n");
+                break;;
+            case COMPRESS_COST_MEDIUM:
+                printf("Compress cost: MEDIUM\n");
+                break;;
+            case COMPRESS_COST_HARD:
+                printf("Compress cost: HARD\n");
+                break;;
+            }
         }
-        break;;
+    break;;
     default:
         help(argv[0]);
         return 1;
