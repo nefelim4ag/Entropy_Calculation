@@ -15,8 +15,7 @@ int shannon_i(const uint8_t *input_data, const uint64_t bytes_len) {
     uint64_t entropy_max = 8*LOG2_RET_SHIFT;
     double entropy_perc;
     uint32_t i;
-    /* Expected that: 4096 <= input data size <= 4294967296 */
-    uint32_t *bucket = (uint32_t *) calloc(BUCKET_SIZE, sizeof(uint32_t));
+    uint32_t bucket[256];
 
     for (i = 0; i < bytes_len; i++)
         bucket[input_data[i]]++;
@@ -28,8 +27,6 @@ int shannon_i(const uint8_t *input_data, const uint64_t bytes_len) {
             entropy_sum += -p*log2_lshift16(p);
         }
     }
-
-    free(bucket);
 
     entropy_sum = entropy_sum/LOG2_ARG_SHIFT;
     entropy_perc = entropy_sum*100.0/entropy_max;
