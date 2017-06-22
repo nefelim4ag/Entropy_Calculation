@@ -10,8 +10,8 @@ log2_generator.o: log2_generator.c log2_lshift16.c
 	$(CC) $(CFLAGS) -c log2_generator.c log2_lshift16.c
 
 
-entropy_calc: entropy_calc.o avg_mean.o shannon_f.o shannon_i.o log2_lshift16.o heuristic.o int_sqrt.o sort.o
-	$(CC) $(CFLAGS) -o entropy_calc entropy_calc.o avg_mean.o shannon_f.o shannon_i.o log2_lshift16.o heuristic.o int_sqrt.o sort.o
+entropy_calc: entropy_calc.o avg_mean.o shannon_f.o shannon_i.o log2_lshift16.o heuristic.o sort.o
+	$(CC) $(CFLAGS) -o entropy_calc entropy_calc.o avg_mean.o shannon_f.o shannon_i.o log2_lshift16.o heuristic.o sort.o
 
 entropy_calc.o: entropy_calc.c
 	$(CC) $(CFLAGS) -c entropy_calc.c
@@ -30,9 +30,6 @@ log2_lshift16.o: log2_lshift16.c
 
 heuristic.o: heuristic.c
 	$(CC) $(CFLAGS) -c heuristic.c
-
-int_sqrt.o: int_sqrt.c
-	$(CC) $(CFLAGS) -c int_sqrt.c
 
 sort.o: sort.c
 	$(CC) $(CFLAGS) -c sort.c
