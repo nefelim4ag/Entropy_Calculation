@@ -19,6 +19,8 @@
 #define SHANNON_I 3
 #define HEURISTIC 4
 
+#define MAX_READ_SIZE 131072
+
 void help(char *self_name){
     printf("%s <mode_num 1-4> <file_path>\n", self_name);
     printf("\t0 - for init time measurement, do nothing\n");
@@ -30,9 +32,6 @@ void help(char *self_name){
 
 int main(int argc, char *argv[]) {
     struct stat file_stat;
-    /* Expected that: 4096 <= input data size <= 4294967296 */
-    uint64_t max_input_size = 4294967296;
-    uint64_t min_input_size = 2048;
     uint64_t file_size;
     uint8_t *input_data;
     uint8_t mode;
@@ -58,15 +57,6 @@ int main(int argc, char *argv[]) {
     fstat (fd, &file_stat);
     file_size = file_stat.st_size;
 
-    if (file_size >= max_input_size) {
-        printf("Max supported input file size 4G\n");
-        return 1;
-    }
-    if (file_size < min_input_size) {
-        printf("Max supported input file size 4G\n");
-        return 1;
-    }
-
     int prot = PROT_READ|PROT_NONE;
     int map_flags =  MAP_SHARED;
     input_data = (uint8_t *) mmap (0, file_size, prot, map_flags, fd, 0);
@@ -74,20 +64,46 @@ int main(int argc, char *argv[]) {
     switch (mode) {
     case INIT_PROF:
         _input_data = (uint64_t *) input_data;
-        for (uint32_t i = 0; i < file_size/8; i++)
+        for (uint64_t i = 0; i < file_size/8; i++)
             black_hole += _input_data[i];
         break;;
     case AVG_MEAN:
-        avg_mean(input_data, file_size);
+        for (uint i = 0; i < file_size; i+=MAX_READ_SIZE) {
+            if (file_size <= MAX_READ_SIZE) {
+                avg_mean(input_data, file_size);
+            } else {
+                if (file_size - i > MAX_READ_SIZE)
+                    avg_mean(&input_data[i], MAX_READ_SIZE);
+                else
+                    avg_mean(&input_data[i], file_size - i);
+            }
+        }
         break;;
     case SHANNON_F:
-        shannon_f(input_data, file_size);
+        for (uint i = 0; i < file_size; i+=MAX_READ_SIZE) {
+            if (file_size <= MAX_READ_SIZE) {
+                shannon_f(input_data, file_size);
+            } else {
+                if (file_size - i > MAX_READ_SIZE)
+                    shannon_f(&input_data[i], MAX_READ_SIZE);
+                else
+                    shannon_f(&input_data[i], file_size - i);
+            }
+        }
         break;;
     case SHANNON_I:
-        shannon_i(input_data, file_size);
+        for (uint i = 0; i < file_size; i+=MAX_READ_SIZE) {
+            if (file_size <= MAX_READ_SIZE) {
+                shannon_i(input_data, file_size);
+            } else {
+                if (file_size - i > MAX_READ_SIZE)
+                    shannon_i(&input_data[i], MAX_READ_SIZE);
+                else
+                    shannon_i(&input_data[i], file_size - i);
+            }
+        }
         break;;
     case HEURISTIC:
-        #define MAX_READ_SIZE 131072
         for (uint i = 0; i < file_size; i+=MAX_READ_SIZE) {
             if (file_size <= MAX_READ_SIZE) {
                 ret = heuristic(input_data, file_size);
