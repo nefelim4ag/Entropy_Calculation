@@ -23,21 +23,46 @@
  * it less suitable for kernel use.
  */
 
- static void u32_swap(void *a, void *b, int size)
- {
- 	int32_t t = *(int32_t *)a;
- 	*(int32_t *)a = *(int32_t *)b;
- 	*(int32_t *)b = t;
- }
+static void uint32_t_swap(void *a, void *b, int size)
+{
+	uint32_t t = *(uint32_t *)a;
+	*(uint32_t *)a = *(uint32_t *)b;
+	*(uint32_t *)b = t;
+}
+
+static void uint64_t_swap(void *a, void *b, int size)
+{
+	uint64_t t = *(uint64_t *)a;
+	*(uint64_t *)a = *(uint64_t *)b;
+	*(uint64_t *)b = t;
+}
+
+static void generic_swap(void *a, void *b, int size)
+{
+	char t;
+	do {
+		t = *(char *)a;
+		*(char *)a++ = *(char *)b;
+		*(char *)b++ = t;
+	} while (--size > 0);
+}
+
 
 void sort(void *base, uint64_t num, uint64_t size,
-	  int (*cmp_func)(const void *, const void *),
-	  void (*swap_func)(void *, void *, int size))
+	int (*cmp_func)(const void *, const void *),
+	void (*swap_func)(void *, void *, int size))
 {
 	/* pre-scale counters for performance */
 	int i = (num/2 - 1) * size, n = num * size, c, r;
 
-    swap_func = u32_swap;
+	if (!swap_func) {
+		if (size == 4)
+			swap_func = uint32_t_swap;
+		else if (size == 8)
+			swap_func = uint64_t_swap;
+		else
+			swap_func = generic_swap;
+	}
 
 	/* heapify */
 	for ( ; i >= 0; i -= size) {
