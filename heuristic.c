@@ -153,7 +153,6 @@ enum compress_advice heuristic(const uint8_t *input_data,
     a = _coreset_calc(bucket, count*90/100);
 
     if (a < 50) {
-        printf("test\n");
         ret = COMPRESS_COST_EASY;
         goto out;
     }
