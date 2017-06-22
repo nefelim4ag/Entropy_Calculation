@@ -58,7 +58,7 @@ static int _coreset_calc(const uint32_t *bucket,
     return a;
 }
 
-static int _entropy_perc(const uint32_t *bucket, const uint32_t count)
+static int _entropy_perc(const uint32_t *bucket, const uint32_t sample_size)
 {
     uint32_t a, p;
     uint32_t entropy_sum = 0;
@@ -70,7 +70,7 @@ static int _entropy_perc(const uint32_t *bucket, const uint32_t count)
      */
     for (a = 0; a < BUCKET_SIZE && bucket[a] > 0; a++) {
         p = bucket[a];
-        p = p*LOG2_ARG_SHIFT/count;
+        p = p*LOG2_ARG_SHIFT/sample_size;
         entropy_sum += -p*log2_lshift16(p);
     }
 
@@ -106,39 +106,26 @@ enum compress_advice heuristic(const uint8_t *input_data,
     enum compress_advice ret = COMPRESS_NONE;
     const uint32_t offset_count = bytes_len/512;
     const uint32_t shift = bytes_len/offset_count;
-    const uint32_t count = offset_count*READ_SIZE;
+    const uint32_t sample_size = offset_count*READ_SIZE;
     uint32_t a, b;
     uint32_t bucket[256];
+    uint8_t  *sample = malloc(sample_size);
 
     for (a = 0; a < BUCKET_SIZE; a++)
         bucket[a] = 0;
 
-#if 0
-    uint8_t  *sample = malloc(count);
     /* Read small subset of data 1024b-2048b */
     a = 0;
     b = 0;
-    while (a < (bytes_len-READ_SIZE)) {
-        memcpy(&sample[b], &input_data[b], READ_SIZE);
+    while (a < (bytes_len-READ_SIZE) && b < sample_size) {
+        memcpy(&sample[b], &input_data[a], READ_SIZE);
         a += shift;
         b += READ_SIZE;
     }
-    for (a = 0; a < count; a++) {
+
+    for (a = 0; a < sample_size; a++) {
         bucket[sample[a]]++;
     }
-#else
-    /* Read small subset of data 1024b-2048b */
-    a = 0;
-    while (a < (bytes_len-READ_SIZE)) {
-        for (b = a; b < a+READ_SIZE; b++) {
-            bucket[input_data[b]]++;
-        }
-        a += shift;
-    }
-#endif
-
-
-
 
     a = _symbset_calc(bucket);
     if (a < 64) {
@@ -150,7 +137,7 @@ enum compress_advice heuristic(const uint8_t *input_data,
     /* Sort in reverse order */
     sort(bucket, BUCKET_SIZE, sizeof(uint32_t), &compare, NULL);
 
-    a = _coreset_calc(bucket, count*90/100);
+    a = _coreset_calc(bucket, sample_size*90/100);
 
     if (a < 50) {
         ret = COMPRESS_COST_EASY;
@@ -162,7 +149,7 @@ enum compress_advice heuristic(const uint8_t *input_data,
         goto out;
     }
 
-    a = _entropy_perc(bucket, count);
+    a = _entropy_perc(bucket, sample_size);
     if (a <= 70)
         ret = COMPRESS_COST_MEDIUM;
     else if (a <= 80)
@@ -171,6 +158,6 @@ enum compress_advice heuristic(const uint8_t *input_data,
         ret = COMPRESS_NONE;
 
 out:
-    //free(sample);
+    free(sample);
     return ret;
 }
