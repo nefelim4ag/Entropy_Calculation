@@ -1,7 +1,7 @@
 # Entropy_Calculation
 Proof of concept, calculation entropy of data stream
 
-I've writen C/C++ realization of:
+I've writen C realization of:
 - AVG meaning entropy
 - Shannon entropy
 - Shannon entropy only with integer logic (for kernel)
@@ -11,6 +11,9 @@ log2_generator - can generate precalculated values of log2 (and function)
 with assumption that arg will be left shifted by 16 bit
 and return value of log2_lshift16() will be left shifted by 3 bit
 All that shifts used for avoid of using floating point in calculation
+
+Yes, it's possible to use integer version of log2 with
+some changes in algorithms, but when accuracy will suck
 
 log2_lshift16.h - header
 log2_lshift16.c - store precalculated function (log2(arg << 24)) << 3
