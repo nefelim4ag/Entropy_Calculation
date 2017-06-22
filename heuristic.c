@@ -109,6 +109,11 @@ enum compress_advice heuristic(const uint8_t *input_data,
     const uint32_t sample_size = offset_count*READ_SIZE;
     uint32_t a, b;
     uint32_t bucket[BUCKET_SIZE];
+    /*
+     * speedup by copy data to sample array +30%
+     * I think it's because of memcpy speed and
+     * cpu cache hits
+     */
     uint8_t  *sample = malloc(sample_size);
 
     memset(&bucket, 0, sizeof(bucket));
