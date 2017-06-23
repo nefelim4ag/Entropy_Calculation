@@ -41,6 +41,14 @@ performance_test.sh - stupid but simple methods to compare algorithms
 Schanon int entropy: 510/512 ~= 99.660975%
 
 ###
+# You can also run over big files like VM images, videos, etc
+# (file cached in page cache)
+~$ make && ./entropy_calc 4 ~/Public/W10x64.1703.iso | grep -iv  compress
+make: Nothing to be done for 'default'.
+Perf: 983 ms ~ 4325.186706MB/s
+
+
+###
 # Run performance test script
 # Performance test will measure initialization time
 # And remove it from run time of tests
@@ -49,56 +57,56 @@ Schanon int entropy: 510/512 ~= 99.660975%
 ./performance_test.sh
 
 Test good compressible data: 128k
-AVG Initialization time: 15967ms
-avg mean:       1750ms
-shannon float:  10217ms
-shannon integ:  9932ms
-heuristic:      1477ms
-gzip -ck -3 /run/user/1000/test_data.bin:       20249ms
-lzop -ck -1 /run/user/1000/test_data.bin:       13377ms
+AVG Initialization time: 16032ms
+avg mean:       2082ms
+shannon float:  9945ms
+shannon integ:  11756ms
+heuristic:      2048ms
+gzip -ck -3 /run/user/1000/test_data.bin:       20164ms
+lzop -ck -1 /run/user/1000/test_data.bin:       14133ms
 - - - - -
 Test half compressible data: 128k
-AVG Initialization time: 16207ms
-avg mean:       2090ms
-shannon float:  7386ms
-shannon integ:  7249ms
-heuristic:      1913ms
-gzip -ck -3 /run/user/1000/test_data.bin:       55726ms
-lzop -ck -1 /run/user/1000/test_data.bin:       13620ms
+AVG Initialization time: 16143ms
+avg mean:       2458ms
+shannon float:  7781ms
+shannon integ:  7439ms
+heuristic:      2737ms
+gzip -ck -3 /run/user/1000/test_data.bin:       55353ms
+lzop -ck -1 /run/user/1000/test_data.bin:       14174ms
 - - - - -
 Test bad compressible data: 128k
-AVG Initialization time: 16253ms
-avg mean:       1836ms
-shannon float:  5525ms
-shannon integ:  5302ms
-heuristic:      1932ms
-gzip -ck -3 /run/user/1000/test_data.bin:       106353ms
-lzop -ck -1 /run/user/1000/test_data.bin:       13600ms
+AVG Initialization time: 16313ms
+avg mean:       2428ms
+shannon float:  5864ms
+shannon integ:  5448ms
+heuristic:      2415ms
+gzip -ck -3 /run/user/1000/test_data.bin:       105410ms
+lzop -ck -1 /run/user/1000/test_data.bin:       14008ms
 - - - - -
 Test good compressible data: 8k
-AVG Initialization time: 16107ms
-avg mean:       1195ms
-shannon float:  1380ms
-shannon integ:  2027ms
-heuristic:      1202ms
-gzip -ck -3 /run/user/1000/test_data.bin:       1778ms
-lzop -ck -1 /run/user/1000/test_data.bin:       11224ms
+AVG Initialization time: 16226ms
+avg mean:       1872ms
+shannon float:  2341ms
+shannon integ:  2210ms
+heuristic:      1582ms
+gzip -ck -3 /run/user/1000/test_data.bin:       1832ms
+lzop -ck -1 /run/user/1000/test_data.bin:       11136ms
 - - - - -
 Test half compressible data: 8k
-AVG Initialization time: 15848ms
-avg mean:       1946ms
-shannon float:  2715ms
-shannon integ:  3246ms
-heuristic:      2739ms
-gzip -ck -3 /run/user/1000/test_data.bin:       5702ms
-lzop -ck -1 /run/user/1000/test_data.bin:       12483ms
+AVG Initialization time: 16709ms
+avg mean:       1276ms
+shannon float:  2146ms
+shannon integ:  1801ms
+heuristic:      1499ms
+gzip -ck -3 /run/user/1000/test_data.bin:       4799ms
+lzop -ck -1 /run/user/1000/test_data.bin:       10677ms
 - - - - -
 Test bad compressible data: 8k
-AVG Initialization time: 16722ms
-avg mean:       1622ms
-shannon float:  2407ms
-shannon integ:  2003ms
-heuristic:      1574ms
-gzip -ck -3 /run/user/1000/test_data.bin:       6066ms
-lzop -ck -1 /run/user/1000/test_data.bin:       11305ms
+AVG Initialization time: 16461ms
+avg mean:       1437ms
+shannon float:  2203ms
+shannon integ:  1880ms
+heuristic:      2050ms
+gzip -ck -3 /run/user/1000/test_data.bin:       6084ms
+lzop -ck -1 /run/user/1000/test_data.bin:       10987ms
 ```
