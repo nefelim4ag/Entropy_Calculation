@@ -12,11 +12,17 @@
 /* For shannon full integer entropy calculation */
 #define BUCKET_SIZE (1 << 8)
 
+struct _backet_item {
+    uint8_t  padding;
+    uint8_t  symbol;
+    uint16_t count;
+};
+
 /* For sorting */
-static int compare(const void *lhs, const void *rhs) {
-    int16_t lhs_integer = *(const int16_t *)(lhs);
-    int16_t rhs_integer = *(const int16_t *)(rhs);
-    return rhs_integer - lhs_integer;
+static int32_t compare(const void *lhs, const void *rhs) {
+    struct _backet_item *l = (struct _backet_item *)(lhs);
+    struct _backet_item *r = (struct _backet_item *)(rhs);
+    return r->count - l->count;
 }
 
 /*
@@ -24,12 +30,12 @@ static int compare(const void *lhs, const void *rhs) {
  * Charset size over sample
  * will be small <= 64
  */
-static int _symbset_calc(const uint32_t *bucket)
+static int _symbset_calc(const struct _backet_item *bucket)
 {
-    uint32_t a;
+    uint32_t a = 0;
     uint32_t symbset_size = 0;
-    for (a = 0; a < BUCKET_SIZE && symbset_size <= 64; a++) {
-        if (bucket[a])
+    for (; a < BUCKET_SIZE && symbset_size <= 64; a++) {
+        if (bucket[a].count)
             symbset_size++;
     }
     return symbset_size;
@@ -43,14 +49,14 @@ static int _symbset_calc(const uint32_t *bucket)
  * > 200 - bad compressible data
  * For right & fast calculation bucket must be reverse sorted
  */
-static int _coreset_calc(const uint32_t *bucket,
+static int _coreset_calc(const struct _backet_item *bucket,
     const uint32_t sum_threshold)
 {
     uint32_t a = 0;
     uint32_t coreset_sum = 0;
 
-    for (a = 0; a < 201; a++) {
-        coreset_sum += bucket[a];
+    for (a = 0; a < 201 && bucket[a].count; a++) {
+        coreset_sum += bucket[a].count;
         if (coreset_sum > sum_threshold)
             break;
     }
@@ -58,24 +64,51 @@ static int _coreset_calc(const uint32_t *bucket,
     return a;
 }
 
-static int _entropy_perc(const uint32_t *bucket, const uint32_t sample_size)
+static int _entropy_perc(const struct _backet_item *bucket,
+    const uint32_t sample_size)
 {
     uint32_t a, p;
     uint32_t entropy_sum = 0;
     uint32_t entropy_max = LOG2_RET_SHIFT*8;
 
-    /*
-     * Okay, code fail to fast detect data type
-     * Let's calculate entropy
-     */
-    for (a = 0; a < BUCKET_SIZE && bucket[a] > 0; a++) {
-        p = bucket[a];
+    for (a = 0; a < BUCKET_SIZE && bucket[a].count > 0; a++) {
+        p = bucket[a].count;
         p = p*LOG2_ARG_SHIFT/sample_size;
         entropy_sum += -p*log2_lshift16(p);
     }
 
     entropy_sum = entropy_sum / LOG2_ARG_SHIFT;
     return entropy_sum*100/entropy_max;
+}
+
+/* Pair distance from random distribution */
+static int _rnd_dist(const struct _backet_item *bucket,
+    const uint32_t coreset_size, const uint8_t *sample, uint32_t sample_size)
+{
+    uint32_t a, b;
+    uint8_t pair_a[2], pair_b[2];
+    uint32_t pairs_count;
+    uint64_t sum = 0;
+    uint64_t buf1, buf2;
+    for (a = 0; a < coreset_size-1; a++) {
+        pairs_count = 0;
+        pair_a[0] = bucket[a].symbol;
+        pair_a[1] = bucket[a+1].symbol;
+        pair_b[1] = bucket[a].symbol;
+        pair_b[0] = bucket[a+1].symbol;
+        for (b = 0; b < sample_size-1; b++) {
+            uint16_t *pair_c = (uint16_t *) &sample[b];
+            if ( pair_c == (uint16_t *) pair_a || pair_c == (uint16_t *) pair_b)
+                pairs_count++;
+        }
+        buf1 = bucket[a].count*bucket[a+1].count;
+        buf1 = buf1*100000/(sample_size*sample_size);
+        buf2 = pairs_count*2*100000;
+        buf2 = pairs_count/sample_size;
+        sum += (buf1 - buf2)*(buf1 - buf2);
+    }
+
+    return sum/2048;
 }
 
 /*
@@ -89,12 +122,17 @@ static int _entropy_perc(const uint32_t *bucket, const uint32_t sample_size)
  *      incriment coreset size each time
  *    - coreset_size < 50  - data will be easy compressible, return
  *      coreset_size > 200 - data will be bad compressible, return
+ *      in general this looks like data compression ratio 0.2 - 0.8
  * 4. Compute shannon entropy
  *      - shannon entropy count of bytes and can't count pairs & entropy_calc
- *        so it's a average info per byte values
- *        so assume if entropy are not to high < 80%
- *        some compression algorithm can compress that data
- * 5. return decision
+ *        so assume:
+ *         - usage of entropy can lead to false negative
+ *           so for prevent that (in bad) case it's usefull to "count" pairs
+ *         - entropy are not to high < 70% easy compressible, return
+ *         - entropy are high < 90%, try count pairs,
+ *           if there is any noticeable amount, compression are possible, return
+ *         - entropy are high > 90%, try count pairs,
+ *           if there is noticeable amount, compression are possible, return
  */
 
 #define READ_SIZE 16
@@ -104,19 +142,38 @@ enum compress_advice heuristic(const uint8_t *input_data,
     const uint64_t bytes_len)
 {
     enum compress_advice ret = COMPRESS_NONE;
-    const uint32_t offset_count = bytes_len/512;
-    const uint32_t shift = bytes_len/offset_count;
-    const uint32_t sample_size = offset_count*READ_SIZE;
+    uint32_t offset_count, shift, sample_size;
     uint32_t a, b;
-    uint32_t bucket[BUCKET_SIZE];
+    struct _backet_item bucket[BUCKET_SIZE];
+
+    /*
+     * In data: 128K  64K   32K   4K
+     * Sample:  4096b 3072b 2048b 1024b
+     * Avoid allocating array bigger then 4kb
+     */
+
+    if (bytes_len >= 96*1024) {
+        offset_count = 256;
+    } else {
+        offset_count = 64 + bytes_len/512;
+    }
+
+    shift = bytes_len/offset_count;
+    sample_size = offset_count*READ_SIZE;
+
     /*
      * speedup by copy data to sample array +30%
      * I think it's because of memcpy speed and
      * cpu cache hits
      */
-    uint8_t  *sample = malloc(sample_size);
+    uint8_t *sample = malloc(sample_size);
 
     memset(&bucket, 0, sizeof(bucket));
+
+    /* Preset symbols */
+    for (a = 0; a < BUCKET_SIZE; a++) {
+        bucket[a].symbol = a;
+    }
 
     /* Read small subset of data 1024b-2048b */
     a = 0;
@@ -128,7 +185,7 @@ enum compress_advice heuristic(const uint8_t *input_data,
     }
 
     for (a = 0; a < sample_size; a++) {
-        bucket[sample[a]]++;
+        bucket[sample[a]].count++;
     }
 
     a = _symbset_calc(bucket);
@@ -152,13 +209,28 @@ enum compress_advice heuristic(const uint8_t *input_data,
         goto out;
     }
 
-    a = _entropy_perc(bucket, sample_size);
-    if (a <= 70)
+    /*
+     * Okay, code fail to fast detect data type
+     * Let's calculate entropy
+     */
+    b = _entropy_perc(bucket, sample_size);
+    if (b < 70) {
         ret = COMPRESS_COST_MEDIUM;
-    else if (a <= 80)
-        ret = COMPRESS_COST_HARD;
-    else
-        ret = COMPRESS_NONE;
+        goto out;
+    } else {
+        a = _rnd_dist(bucket, a, sample, sample_size);
+        if (b < 90) {
+            if (a > 0)
+                ret = COMPRESS_COST_MEDIUM;
+            else
+                ret = COMPRESS_NONE;
+        } else {
+            if (a > 10)
+                ret = COMPRESS_COST_HARD;
+            else
+                ret = COMPRESS_NONE;
+        }
+    }
 
 out:
     free(sample);
