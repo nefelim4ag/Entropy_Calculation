@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <time.h>
 
 /* Entropy calculation methods */
 #include "avg_mean.h"
@@ -39,6 +40,7 @@ int main(int argc, char *argv[]) {
     uint64_t black_hole = 0;
     uint64_t *_input_data;
     enum compress_advice ret;
+    clock_t start, end;
 
     /* Check num of args */
     if (argc != 3) {
@@ -60,6 +62,8 @@ int main(int argc, char *argv[]) {
     int prot = PROT_READ|PROT_NONE;
     int map_flags =  MAP_SHARED;
     input_data = (uint8_t *) mmap (0, file_size, prot, map_flags, fd, 0);
+
+    start = clock()*1000000/CLOCKS_PER_SEC;
 
     switch (mode) {
     case INIT_PROF:
@@ -129,6 +133,9 @@ int main(int argc, char *argv[]) {
         help(argv[0]);
         return 1;
     }
+
+    end = clock()*1000000/CLOCKS_PER_SEC;
+    printf("Perf: %lu ms ~ %fMB/s\n", (end - start)/1000, file_size*1.0/(end - start));
 
     return 0;
 }
