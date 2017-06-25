@@ -175,7 +175,7 @@ enum compress_advice heuristic(const uint8_t *input_data,
         bucket[a].symbol = a;
     }
 
-    /* Read small subset of data 1024b-2048b */
+    /* Read small subset of data 1024b-4096b */
     a = 0;
     b = 0;
     while (a < (bytes_len-READ_SIZE) && b < sample_size) {
