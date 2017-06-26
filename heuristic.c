@@ -12,7 +12,7 @@
 /* For shannon full integer entropy calculation */
 #define BUCKET_SIZE (1 << 8)
 
-struct _backet_item {
+struct _bucket_item {
     uint8_t  padding;
     uint8_t  symbol;
     uint16_t count;
@@ -20,8 +20,8 @@ struct _backet_item {
 
 /* For sorting */
 static int32_t compare(const void *lhs, const void *rhs) {
-    struct _backet_item *l = (struct _backet_item *)(lhs);
-    struct _backet_item *r = (struct _backet_item *)(rhs);
+    struct _bucket_item *l = (struct _bucket_item *)(lhs);
+    struct _bucket_item *r = (struct _bucket_item *)(rhs);
     return r->count - l->count;
 }
 
@@ -30,7 +30,7 @@ static int32_t compare(const void *lhs, const void *rhs) {
  * Charset size over sample
  * will be small <= 64
  */
-static int _symbset_calc(const struct _backet_item *bucket)
+static int _symbset_calc(const struct _bucket_item *bucket)
 {
     uint32_t a = 0;
     uint32_t symbset_size = 0;
@@ -49,7 +49,7 @@ static int _symbset_calc(const struct _backet_item *bucket)
  * > 200 - bad compressible data
  * For right & fast calculation bucket must be reverse sorted
  */
-static int _coreset_calc(const struct _backet_item *bucket,
+static int _coreset_calc(const struct _bucket_item *bucket,
     const uint32_t sum_threshold)
 {
     uint32_t a = 0;
@@ -64,7 +64,7 @@ static int _coreset_calc(const struct _backet_item *bucket,
     return a;
 }
 
-static int _entropy_perc(const struct _backet_item *bucket,
+static int _entropy_perc(const struct _bucket_item *bucket,
     const uint32_t sample_size)
 {
     uint32_t a, p;
@@ -82,7 +82,7 @@ static int _entropy_perc(const struct _backet_item *bucket,
 }
 
 /* Pair distance from random distribution */
-static int _rnd_dist(const struct _backet_item *bucket,
+static int _rnd_dist(const struct _bucket_item *bucket,
     const uint32_t coreset_size, const uint8_t *sample, uint32_t sample_size)
 {
     uint32_t a, b;
@@ -144,7 +144,8 @@ enum compress_advice heuristic(const uint8_t *input_data,
     enum compress_advice ret = COMPRESS_NONE;
     uint32_t offset_count, shift, sample_size;
     uint32_t a, b;
-    struct _backet_item bucket[BUCKET_SIZE];
+    struct _bucket_item *bucket = NULL;
+    uint8_t *sample;
 
     /*
      * In data: 128K  64K   32K   4K
@@ -166,14 +167,13 @@ enum compress_advice heuristic(const uint8_t *input_data,
      * I think it's because of memcpy speed and
      * cpu cache hits
      */
-    uint8_t *sample = malloc(sample_size);
+    sample = (uint8_t *) malloc(sample_size);
+    if (!sample)
+        goto out;
 
-    memset(&bucket, 0, sizeof(bucket));
-
-    /* Preset symbols */
-    for (a = 0; a < BUCKET_SIZE; a++) {
-        bucket[a].symbol = a;
-    }
+    bucket = (struct _bucket_item *) calloc(sizeof(struct _bucket_item), BUCKET_SIZE);
+    if (!bucket)
+        goto out;
 
     /* Read small subset of data 1024b-4096b */
     a = 0;
@@ -184,15 +184,19 @@ enum compress_advice heuristic(const uint8_t *input_data,
         b += READ_SIZE;
     }
 
-    for (a = 0; a < sample_size; a++) {
+    for (a = 0; a < sample_size; a++)
         bucket[sample[a]].count++;
-    }
+
 
     a = _symbset_calc(bucket);
     if (a < 64) {
         ret = COMPRESS_COST_EASY;
         goto out;
     }
+
+    /* Preset symbols */
+    for (a = 0; a < BUCKET_SIZE; a++)
+        bucket[a].symbol = a;
 
     /* Sort in reverse order */
     sort(bucket, BUCKET_SIZE, sizeof(uint32_t), &compare, NULL);
@@ -233,6 +237,9 @@ enum compress_advice heuristic(const uint8_t *input_data,
     }
 
 out:
-    free(sample);
+    if (bucket)
+        free(bucket);
+    if (sample)
+        free(sample);
     return ret;
 }
