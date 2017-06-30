@@ -43,10 +43,12 @@ Schanon int entropy: 510/512 ~= 99.660975%
 ###
 # You can also run over big files like VM images, videos, etc
 # (file cached in page cache)
-~$ make && ./entropy_calc 4 ~/Public/W10x64.1703.iso | grep -iv  compress
+~$ make && ./entropy_calc 4 ~/Public/W10x64.1703.iso | grep -iv compress
 make: Nothing to be done for 'default'.
-Perf: 983 ms ~ 4325.186706MB/s
-
+Perf: 944 ms ~ 4504.689950MB/s
+~$ make && ./entropy_calc 4 ~/zero | grep -v -i compress
+make: Nothing to be done for 'default'.
+Perf: 489 ms ~ 8772.669293MB/s
 
 ###
 # Run performance test script

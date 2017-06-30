@@ -10,7 +10,7 @@
 #include "log2_lshift16.h"
 
 /* For shannon full integer entropy calculation */
-#define BUCKET_SIZE (1 << 8)
+#define __BUCKET_SIZE (1 << 8)
 
 struct __bucket_item {
 	uint8_t  padding;
@@ -25,19 +25,31 @@ static int32_t compare(const void *lhs, const void *rhs) {
 	return r->count - l->count;
 }
 
+
 /*
  * For good compressible data
  * Charset size over sample
- * will be small <= 64
+ * will be small < 64
  */
-static int __symbset_calc(const struct __bucket_item *bucket)
+#define __SYMBSET_HIGH 64
+static uint32_t __symbset_calc(const struct __bucket_item *bucket)
 {
 	uint32_t a = 0;
 	uint32_t symbset_size = 0;
-	for (; a < BUCKET_SIZE && symbset_size <= 64; a++) {
+
+	for (; a < __SYMBSET_HIGH+1; a++) {
 		if (bucket[a].count)
 			symbset_size++;
 	}
+
+	if (symbset_size >= __SYMBSET_HIGH)
+		return symbset_size;
+
+	for (; a < __BUCKET_SIZE && symbset_size < __SYMBSET_HIGH; a++) {
+		if (bucket[a].count)
+			symbset_size++;
+	}
+
 	return symbset_size;
 }
 
@@ -49,13 +61,21 @@ static int __symbset_calc(const struct __bucket_item *bucket)
  * > 200 - bad compressible data
  * For right & fast calculation bucket must be reverse sorted
  */
-static int __coreset_calc(const struct __bucket_item *bucket,
+#define __CORESET_LOW 50
+#define __CORESET_HIGH 200
+static uint32_t __coreset_calc(const struct __bucket_item *bucket,
 	const uint32_t sum_threshold)
 {
 	uint32_t a = 0;
 	uint32_t coreset_sum = 0;
 
-	for (a = 0; a < 201 && bucket[a].count; a++) {
+	for (; a < __CORESET_LOW-1; a++)
+		coreset_sum += bucket[a].count;
+
+	if (coreset_sum > sum_threshold)
+		return a;
+
+	for (; a < __CORESET_HIGH+1 && bucket[a].count > 0; a++) {
 		coreset_sum += bucket[a].count;
 		if (coreset_sum > sum_threshold)
 			break;
@@ -64,14 +84,13 @@ static int __coreset_calc(const struct __bucket_item *bucket,
 	return a;
 }
 
-static int __entropy_perc(const struct __bucket_item *bucket,
+static uint64_t __entropy_perc(const struct __bucket_item *bucket,
 	const uint32_t sample_size)
 {
-	uint32_t a, p;
-	uint32_t entropy_sum = 0;
-	uint32_t entropy_max = LOG2_RET_SHIFT*8;
+	uint32_t a, entropy_max = LOG2_RET_SHIFT*8;
+	uint64_t p, entropy_sum = 0;
 
-	for (a = 0; a < BUCKET_SIZE && bucket[a].count > 0; a++) {
+	for (a = 0; a < __BUCKET_SIZE && bucket[a].count > 0; a++) {
 		p = bucket[a].count;
 		p = p*LOG2_ARG_SHIFT/sample_size;
 		entropy_sum += -p*log2_lshift16(p);
@@ -82,11 +101,12 @@ static int __entropy_perc(const struct __bucket_item *bucket,
 }
 
 /* Pair distance from random distribution */
-static int __rnd_dist(const struct __bucket_item *bucket,
+static uint32_t __rnd_dist(const struct __bucket_item *bucket,
 	const uint32_t coreset_size, const uint8_t *sample, uint32_t sample_size)
 {
 	uint32_t a, b;
 	uint8_t pair_a[2], pair_b[2];
+	uint16_t *pair_c;
 	uint32_t pairs_count;
 	uint64_t sum = 0;
 	uint64_t buf1, buf2;
@@ -97,8 +117,10 @@ static int __rnd_dist(const struct __bucket_item *bucket,
 		pair_b[1] = bucket[a].symbol;
 		pair_b[0] = bucket[a+1].symbol;
 		for (b = 0; b < sample_size-1; b++) {
-			uint16_t *pair_c = (uint16_t *) &sample[b];
-			if ( pair_c == (uint16_t *) pair_a || pair_c == (uint16_t *) pair_b)
+			pair_c = (uint16_t *) &sample[b];
+			if ( pair_c == (uint16_t *) pair_a)
+				pairs_count++;
+			else if (pair_c == (uint16_t *) pair_b)
 				pairs_count++;
 		}
 		buf1 = bucket[a].count*bucket[a+1].count;
@@ -108,35 +130,36 @@ static int __rnd_dist(const struct __bucket_item *bucket,
 		sum += (buf1 - buf2)*(buf1 - buf2);
 	}
 
-	return sum/2048;
+	return sum >> 11;
 }
 
 /*
  * Algorithm description
  * 1. Get subset of data for fast computation
  * 2. Scan bucket for symbol set
- *	- symbol set < 64 - data will be easy compressible, return
+ *    - symbol set < 64 - data will be easy compressible, return
  * 3. Try compute coreset size (symbols count that use 90% of input data)
- *	- reverse sort bucket
- *	- sum cells until we reach 90% threshold,
- *	  incriment coreset size each time
- *	- coreset_size < 50  - data will be easy compressible, return
- *	  coreset_size > 200 - data will be bad compressible, return
- *	  in general this looks like data compression ratio 0.2 - 0.8
+ *    - reverse sort bucket
+ *    - sum cells until we reach 90% threshold,
+ *      incriment coreset size each time
+ *    - coreset_size < 50  - data will be easy compressible, return
+ *                   > 200 - data will be bad compressible, return
+ *      in general this looks like data compression ratio 0.2 - 0.8
  * 4. Compute shannon entropy
- *	  - shannon entropy count of bytes and can't count pairs & entropy_calc
- *		so assume:
- *		 - usage of entropy can lead to false negative
- *		   so for prevent that (in bad) case it's usefull to "count" pairs
- *		 - entropy are not to high < 70% easy compressible, return
- *		 - entropy are high < 90%, try count pairs,
- *		   if there is any noticeable amount, compression are possible, return
- *		 - entropy are high > 90%, try count pairs,
- *		   if there is noticeable amount, compression are possible, return
+ *    - shannon entropy count of bytes and can't count pairs & entropy_calc
+ *      so assume:
+ *        - usage of entropy can lead to false negative
+ *          so for prevent that (in bad) case it's useful to "count" pairs
+ *        - entropy are not to high < 70% easy compressible, return
+ *        - entropy are high < 90%, try count pairs,
+ *          if there is any noticeable amount, compression are possible, return
+ *        - entropy are high > 90%, try count pairs,
+ *          if there is noticeable amount, compression are possible, return
  */
 
 #define READ_SIZE 16
-
+#define __ENTROPY_LVL_MED 70
+#define __ENTROPY_LVL_HIGH 90
 static enum compress_advice ___heuristic(const uint8_t *sample,
 	uint32_t sample_size)
 {
@@ -145,50 +168,51 @@ static enum compress_advice ___heuristic(const uint8_t *sample,
 	uint64_t coreset_size, entropy_lvl;
 	struct __bucket_item *bucket;
 
-	bucket = (struct __bucket_item *) calloc(sizeof(struct __bucket_item), BUCKET_SIZE);
+	bucket = (struct __bucket_item *) calloc(sizeof(struct __bucket_item),
+		__BUCKET_SIZE);
+
 	if (!bucket)
 		goto out;
 
 	for (a = 0; a < sample_size; a++)
 		bucket[sample[a]].count++;
 
-
 	a = __symbset_calc(bucket);
-	if (a < 64) {
+	if (a < __SYMBSET_HIGH) {
 		ret = COMPRESS_COST_EASY;
 		goto out;
 	}
 
-	/* Preset symbols */
-	for (a = 0; a < BUCKET_SIZE; a++)
+	/* Preset symbols, 0 - elemnt already set */
+	for (a = 1; a < __BUCKET_SIZE; a++)
 		bucket[a].symbol = a;
 
 	/* Sort in reverse order */
-	sort(bucket, BUCKET_SIZE, sizeof(uint32_t), &compare, NULL);
+	sort(bucket, __BUCKET_SIZE, sizeof(uint32_t), &compare, NULL);
 
 	coreset_size = __coreset_calc(bucket, sample_size*90/100);
 
-	if (coreset_size < 50) {
+	if (coreset_size < __CORESET_LOW) {
 		ret = COMPRESS_COST_EASY;
 		goto out;
 	}
 
-	if (coreset_size > 200) {
+	if (coreset_size > __CORESET_HIGH) {
 		ret = COMPRESS_NONE;
 		goto out;
 	}
 
 	/*
-	 * Okay, code fail to fast detect data type
+	 * Okay, code can't fast detect data type
 	 * Let's calculate entropy
 	 */
 	entropy_lvl = __entropy_perc(bucket, sample_size);
-	if (entropy_lvl < 70) {
+	if (entropy_lvl < __ENTROPY_LVL_MED) {
 		ret = COMPRESS_COST_MEDIUM;
 		goto out;
 	} else {
 		a = __rnd_dist(bucket, a, sample, sample_size);
-		if (entropy_lvl < 90) {
+		if (entropy_lvl < __ENTROPY_LVL_HIGH) {
 			if (a > 0)
 				ret = COMPRESS_COST_MEDIUM;
 			else
