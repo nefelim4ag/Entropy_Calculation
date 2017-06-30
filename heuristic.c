@@ -140,7 +140,7 @@ static int __rnd_dist(const struct __bucket_item *bucket,
 static enum compress_advice ___heuristic(const uint8_t *sample,
 	uint32_t sample_size)
 {
-	enum compress_advice ret = COMPRESS_NONE;
+	enum compress_advice ret = COMPRESS_COST_UNKNOWN;
 	uint32_t a;
 	uint64_t coreset_size, entropy_lvl;
 	struct __bucket_item *bucket;
@@ -210,7 +210,7 @@ out:
 enum compress_advice heuristic(const uint8_t *input_data,
 	const uint64_t bytes_len)
 {
-	enum compress_advice ret = COMPRESS_NONE;
+	enum compress_advice ret = COMPRESS_COST_UNKNOWN;
 	uint32_t offset_count, shift, sample_size;
 	uint32_t a, b;
 	uint8_t *sample;

@@ -117,6 +117,9 @@ int main(int argc, char *argv[]) {
 			case COMPRESS_NONE:
 				printf("Not Compress\n");
 				break;;
+			case COMPRESS_COST_UNKNOWN:
+				printf("Unknown\n");
+				break;;
 			case COMPRESS_COST_EASY:
 				printf("Compress cost: EASY\n");
 				break;;
