@@ -12,7 +12,7 @@
 /* For shannon full integer entropy calculation */
 #define BUCKET_SIZE (1 << 8)
 
-struct _bucket_item {
+struct __bucket_item {
 	uint8_t  padding;
 	uint8_t  symbol;
 	uint16_t count;
@@ -20,8 +20,8 @@ struct _bucket_item {
 
 /* For sorting */
 static int32_t compare(const void *lhs, const void *rhs) {
-	struct _bucket_item *l = (struct _bucket_item *)(lhs);
-	struct _bucket_item *r = (struct _bucket_item *)(rhs);
+	struct __bucket_item *l = (struct __bucket_item *)(lhs);
+	struct __bucket_item *r = (struct __bucket_item *)(rhs);
 	return r->count - l->count;
 }
 
@@ -30,7 +30,7 @@ static int32_t compare(const void *lhs, const void *rhs) {
  * Charset size over sample
  * will be small <= 64
  */
-static int _symbset_calc(const struct _bucket_item *bucket)
+static int __symbset_calc(const struct __bucket_item *bucket)
 {
 	uint32_t a = 0;
 	uint32_t symbset_size = 0;
@@ -49,7 +49,7 @@ static int _symbset_calc(const struct _bucket_item *bucket)
  * > 200 - bad compressible data
  * For right & fast calculation bucket must be reverse sorted
  */
-static int _coreset_calc(const struct _bucket_item *bucket,
+static int __coreset_calc(const struct __bucket_item *bucket,
 	const uint32_t sum_threshold)
 {
 	uint32_t a = 0;
@@ -64,7 +64,7 @@ static int _coreset_calc(const struct _bucket_item *bucket,
 	return a;
 }
 
-static int _entropy_perc(const struct _bucket_item *bucket,
+static int __entropy_perc(const struct __bucket_item *bucket,
 	const uint32_t sample_size)
 {
 	uint32_t a, p;
@@ -82,7 +82,7 @@ static int _entropy_perc(const struct _bucket_item *bucket,
 }
 
 /* Pair distance from random distribution */
-static int _rnd_dist(const struct _bucket_item *bucket,
+static int __rnd_dist(const struct __bucket_item *bucket,
 	const uint32_t coreset_size, const uint8_t *sample, uint32_t sample_size)
 {
 	uint32_t a, b;
@@ -137,14 +137,82 @@ static int _rnd_dist(const struct _bucket_item *bucket,
 
 #define READ_SIZE 16
 
-/* true - compress, false - ignore */
+static enum compress_advice ___heuristic(const uint8_t *sample,
+	uint32_t sample_size)
+{
+	enum compress_advice ret = COMPRESS_NONE;
+	uint32_t a;
+	uint64_t coreset_size, entropy_lvl;
+	struct __bucket_item *bucket;
+
+	bucket = (struct __bucket_item *) calloc(sizeof(struct __bucket_item), BUCKET_SIZE);
+	if (!bucket)
+		goto out;
+
+	for (a = 0; a < sample_size; a++)
+		bucket[sample[a]].count++;
+
+
+	a = __symbset_calc(bucket);
+	if (a < 64) {
+		ret = COMPRESS_COST_EASY;
+		goto out;
+	}
+
+	/* Preset symbols */
+	for (a = 0; a < BUCKET_SIZE; a++)
+		bucket[a].symbol = a;
+
+	/* Sort in reverse order */
+	sort(bucket, BUCKET_SIZE, sizeof(uint32_t), &compare, NULL);
+
+	coreset_size = __coreset_calc(bucket, sample_size*90/100);
+
+	if (coreset_size < 50) {
+		ret = COMPRESS_COST_EASY;
+		goto out;
+	}
+
+	if (coreset_size > 200) {
+		ret = COMPRESS_NONE;
+		goto out;
+	}
+
+	/*
+	 * Okay, code fail to fast detect data type
+	 * Let's calculate entropy
+	 */
+	entropy_lvl = __entropy_perc(bucket, sample_size);
+	if (entropy_lvl < 70) {
+		ret = COMPRESS_COST_MEDIUM;
+		goto out;
+	} else {
+		a = __rnd_dist(bucket, a, sample, sample_size);
+		if (entropy_lvl < 90) {
+			if (a > 0)
+				ret = COMPRESS_COST_MEDIUM;
+			else
+				ret = COMPRESS_NONE;
+		} else {
+			if (a > 10)
+				ret = COMPRESS_COST_HARD;
+			else
+				ret = COMPRESS_NONE;
+		}
+	}
+
+out:
+	if (bucket)
+		free(bucket);
+	return ret;
+}
+
 enum compress_advice heuristic(const uint8_t *input_data,
 	const uint64_t bytes_len)
 {
 	enum compress_advice ret = COMPRESS_NONE;
 	uint32_t offset_count, shift, sample_size;
 	uint32_t a, b;
-	struct _bucket_item *bucket = NULL;
 	uint8_t *sample;
 
 	/*
@@ -171,9 +239,6 @@ enum compress_advice heuristic(const uint8_t *input_data,
 	if (!sample)
 		goto out;
 
-	bucket = (struct _bucket_item *) calloc(sizeof(struct _bucket_item), BUCKET_SIZE);
-	if (!bucket)
-		goto out;
 
 	/* Read small subset of data 1024b-4096b */
 	a = 0;
@@ -184,61 +249,9 @@ enum compress_advice heuristic(const uint8_t *input_data,
 		b += READ_SIZE;
 	}
 
-	for (a = 0; a < sample_size; a++)
-		bucket[sample[a]].count++;
-
-
-	a = _symbset_calc(bucket);
-	if (a < 64) {
-		ret = COMPRESS_COST_EASY;
-		goto out;
-	}
-
-	/* Preset symbols */
-	for (a = 0; a < BUCKET_SIZE; a++)
-		bucket[a].symbol = a;
-
-	/* Sort in reverse order */
-	sort(bucket, BUCKET_SIZE, sizeof(uint32_t), &compare, NULL);
-
-	a = _coreset_calc(bucket, sample_size*90/100);
-
-	if (a < 50) {
-		ret = COMPRESS_COST_EASY;
-		goto out;
-	}
-
-	if (a > 200) {
-		ret = COMPRESS_NONE;
-		goto out;
-	}
-
-	/*
-	 * Okay, code fail to fast detect data type
-	 * Let's calculate entropy
-	 */
-	b = _entropy_perc(bucket, sample_size);
-	if (b < 70) {
-		ret = COMPRESS_COST_MEDIUM;
-		goto out;
-	} else {
-		a = _rnd_dist(bucket, a, sample, sample_size);
-		if (b < 90) {
-			if (a > 0)
-				ret = COMPRESS_COST_MEDIUM;
-			else
-				ret = COMPRESS_NONE;
-		} else {
-			if (a > 10)
-				ret = COMPRESS_COST_HARD;
-			else
-				ret = COMPRESS_NONE;
-		}
-	}
+	ret = ___heuristic(sample, sample_size);
 
 out:
-	if (bucket)
-		free(bucket);
 	if (sample)
 		free(sample);
 	return ret;
