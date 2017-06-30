@@ -26,6 +26,20 @@ static int32_t compare(const void *lhs, const void *rhs) {
 }
 
 
+/* Fast detect zeroes */
+static inline bool __is_zeroes(const uint8_t *sample, const uint32_t sample_size)
+{
+	size_t a = 0;
+	size_t zero = 0;
+
+	for (; a < sample_size; a += sizeof(size_t)) {
+		if (memcmp(&zero, &sample[a], sizeof(size_t)))
+			return false;
+	}
+
+	return true;
+}
+
 /*
  * For good compressible data
  * Charset size over sample
@@ -104,7 +118,7 @@ static uint64_t __entropy_perc(const struct __bucket_item *bucket,
 static uint32_t __rnd_dist(const struct __bucket_item *bucket,
 	const uint32_t coreset_size, const uint8_t *sample, uint32_t sample_size)
 {
-	uint32_t a, b;
+	size_t a, b;
 	uint8_t pair_a[2], pair_b[2];
 	uint16_t *pair_c;
 	uint32_t pairs_count;
@@ -136,16 +150,17 @@ static uint32_t __rnd_dist(const struct __bucket_item *bucket,
 /*
  * Algorithm description
  * 1. Get subset of data for fast computation
- * 2. Scan bucket for symbol set
+ * 2. Fast detect zeroed blocks
+ * 3. Scan bucket for symbol set
  *    - symbol set < 64 - data will be easy compressible, return
- * 3. Try compute coreset size (symbols count that use 90% of input data)
+ * 4. Try compute coreset size (symbols count that use 90% of input data)
  *    - reverse sort bucket
  *    - sum cells until we reach 90% threshold,
  *      incriment coreset size each time
  *    - coreset_size < 50  - data will be easy compressible, return
  *                   > 200 - data will be bad compressible, return
  *      in general this looks like data compression ratio 0.2 - 0.8
- * 4. Compute shannon entropy
+ * 5. Compute shannon entropy
  *    - shannon entropy count of bytes and can't count pairs & entropy_calc
  *      so assume:
  *        - usage of entropy can lead to false negative
@@ -166,7 +181,12 @@ static enum compress_advice ___heuristic(const uint8_t *sample,
 	enum compress_advice ret = COMPRESS_COST_UNKNOWN;
 	uint32_t a;
 	uint64_t coreset_size, entropy_lvl;
-	struct __bucket_item *bucket;
+	struct __bucket_item *bucket = NULL;
+
+	if (__is_zeroes(sample, sample_size)) {
+		ret = COMPRESS_COST_EASY;
+		goto out;
+	}
 
 	bucket = (struct __bucket_item *) calloc(sizeof(struct __bucket_item),
 		__BUCKET_SIZE);

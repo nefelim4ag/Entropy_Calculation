@@ -6,7 +6,7 @@ default all: log2_generator entropy_calc
 log2_generator: log2_generator.o log2_lshift16.o
 	$(CC) $(CFLAGS) -o log2_generator log2_generator.o log2_lshift16.o
 
-log2_generator.o: log2_generator.c log2_lshift16.c
+log2_generator.o: log2_generator.c
 	$(CC) $(CFLAGS) -c log2_generator.c
 
 
