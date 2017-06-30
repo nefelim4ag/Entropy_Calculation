@@ -10,8 +10,8 @@ log2_generator.o: log2_generator.c
 	$(CC) $(CFLAGS) -c log2_generator.c
 
 
-entropy_calc: entropy_calc.o avg_mean.o shannon_f.o shannon_i.o log2_lshift16.o heuristic.o sort.o
-	$(CC) $(CFLAGS) -o entropy_calc entropy_calc.o avg_mean.o shannon_f.o shannon_i.o log2_lshift16.o heuristic.o sort.o
+entropy_calc: entropy_calc.o avg_mean.o shannon_f.o shannon_i.o log2_lshift16.o heuristic.o sort.o detect_zeroes.o
+	$(CC) $(CFLAGS) -o entropy_calc entropy_calc.o avg_mean.o shannon_f.o shannon_i.o log2_lshift16.o heuristic.o sort.o detect_zeroes.o
 
 entropy_calc.o: entropy_calc.c
 	$(CC) $(CFLAGS) -c entropy_calc.c
@@ -33,6 +33,9 @@ heuristic.o: heuristic.c
 
 sort.o: sort.c
 	$(CC) $(CFLAGS) -c sort.c
+
+detect_zeroes.o: detect_zeroes.c
+	$(CC) $(CFLAGS) -c detect_zeroes.c
 
 clean: ## Cleanup
 	git clean -dfx

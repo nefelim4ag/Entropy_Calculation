@@ -13,12 +13,14 @@
 #include "shannon_f.h"
 #include "shannon_i.h"
 #include "heuristic.h"
+#include "detect_zeroes.h"
 
 #define INIT_PROF 0 // Just for get init time + file reading
 #define AVG_MEAN  1
 #define SHANNON_F 2
 #define SHANNON_I 3
 #define HEURISTIC 4
+#define DETECT_ZEROES 5
 
 #define MAX_READ_SIZE 131072
 
@@ -29,6 +31,7 @@ void help(char *self_name){
 	printf("\t2 - shannon float\n");
 	printf("\t3 - shannon integer\n");
 	printf("\t4 - heuristic\n");
+	printf("\t5 - detect zeroes\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -40,6 +43,7 @@ int main(int argc, char *argv[]) {
 	uint64_t black_hole = 0;
 	uint64_t *_input_data;
 	enum compress_advice ret;
+	bool ret2;
 	clock_t start, end;
 
 	/* Check num of args */
@@ -132,6 +136,20 @@ int main(int argc, char *argv[]) {
 			}
 		}
 	break;;
+	case DETECT_ZEROES:
+		for (uint64_t i = 0; i < file_size; i+=MAX_READ_SIZE) {
+			if (file_size <= MAX_READ_SIZE) {
+				ret2 = detect_zeroes(input_data, file_size);
+			} else {
+				if (file_size - i > MAX_READ_SIZE)
+					ret2 = detect_zeroes(&input_data[i], MAX_READ_SIZE);
+				else
+					ret2 = detect_zeroes(&input_data[i], file_size - i);
+			}
+			if (ret2)
+				printf("Zeroed\n");
+		}
+		break;;
 	default:
 		help(argv[0]);
 		return 1;
