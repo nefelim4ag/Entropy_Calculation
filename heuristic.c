@@ -208,7 +208,8 @@ static enum compress_advice ___heuristic(const uint8_t *sample,
 		bucket[a].symbol = a;
 
 	/* Sort in reverse order */
-	sort(bucket, __BUCKET_SIZE, sizeof(uint32_t), &compare, NULL);
+	sort(bucket, __BUCKET_SIZE, sizeof(struct __bucket_item),
+	     &compare, NULL);
 
 	coreset_size = __coreset_calc(bucket, sample_size*90/100);
 
